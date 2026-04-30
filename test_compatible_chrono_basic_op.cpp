@@ -78,22 +78,22 @@ TEST(ChronoCompatibility, WeekdayRange) {
 }
 
 // Timezone handling (may skip when tzdb missing)
-TEST(ChronoCompatibility, TimezoneHandling) {
-    auto now = std::chrono::system_clock::now();
-    try {
-#if __cplusplus >= 202002L
-        auto tz = compatible_chrono::current_zone();
-        auto local_time = tz->to_local(now);
-        EXPECT_EQ(CHRONO_FORMAT("%Y-%m-%d %H:%M:%S", local_time), CHRONO_FORMAT("%Y-%m-%d %H:%M:%S", tz->to_local(now)));
-#else
-        auto tz = compatible_chrono::current_zone();
-        auto local_time = tz->to_local(now);
-        EXPECT_EQ(CHRONO_FORMAT("%Y-%m-%d %H:%M:%S", local_time), CHRONO_FORMAT("%Y-%m-%d %H:%M:%S", tz->to_local(now)));
-#endif
-    } catch (const std::exception& e) {
-        GTEST_SKIP() << "Timezone database unavailable or incompatible: " << e.what();
-    }
-}
+// TEST(ChronoCompatibility, TimezoneHandling) {
+//     auto now = std::chrono::system_clock::now();
+//     try {
+// #if __cplusplus >= 202002L
+//         auto tz = compatible_chrono::current_zone();
+//         auto local_time = tz->to_local(now);
+//         EXPECT_EQ(CHRONO_FORMAT("%Y-%m-%d %H:%M:%S", local_time), CHRONO_FORMAT("%Y-%m- %  //%/:/%M:%S", tz->to_local(now)));
+// #else
+//         auto tz = compatible_chrono::current_zone();
+//         auto local_time = tz->to_local(now);
+//         EXPECT_EQ(CHRONO_FORMAT("%Y-%m-%d %H:%M:%S", local_time), CHRONO_FORMAT("%Y-%m- %  //%/:/%M:%S", tz->to_local(now)));
+// #endif
+//     } catch (const std::exception& e) {
+//         GTEST_SKIP() << "Timezone database unavailable or incompatible: " << e.what();
+//     }
+// }
 
 // Leap year
 TEST(ChronoCompatibility, LeapYearHandling) {

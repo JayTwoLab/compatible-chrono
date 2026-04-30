@@ -5,21 +5,24 @@ if(DEFINED ENV{VCPKG_ROOT})
     message(STATUS "Using vcpkg toolchain file: ${CMAKE_TOOLCHAIN_FILE}")
 
     if (WIN32)
-        set(VCPKG_TARGET_TRIPLET "x64-windows-static")
+        message("Windows vcpkg")
+
+        set(VCPKG_TARGET_TRIPLET "x64-windows-static") # 테스트 편의를 위해 정적만 사용
         set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
         # using x64-windows triplet 
         set(date_DIR  "$ENV{VCPKG_ROOT}/installed/x64-windows-static/share/date")
         set(gtest_DIR "$ENV{VCPKG_ROOT}/installed/x64-windows-static/share/gtest")
     elseif(APPLE)
-	message("macOS")
+        message("macOS vcpkg")
+        # TODO: ... 
     elseif(UNIX)
-	message("Linux or Unix")
+        message("Linux or Unix vcpkg") 
 
-	set(VCPKG_TARGET_TRIPLET "x64-linux")
+        set(VCPKG_TARGET_TRIPLET "x64-linux")
 
-	set(date_DIR  "$ENV{VCPKG_ROOT}/installed/x64-linux/share/date")
-	set(gtest_DIR "$ENV{VCPKG_ROOT}/installed/x64-linux/share/gtest")
+        set(date_DIR  "$ENV{VCPKG_ROOT}/installed/x64-linux/share/date")
+        set(gtest_DIR "$ENV{VCPKG_ROOT}/installed/x64-linux/share/gtest")
     endif()	
 endif() 
 
@@ -31,25 +34,27 @@ if(NOT CMAKE_CXX_STANDARD)
 endif()
 
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CXX_EXTENSIONS OFF)
 
 # gtest
 
 if(WIN32)
     message("Windows")
-	find_package(gtest CONFIG REQUIRED)
+    find_package(gtest CONFIG REQUIRED) # 윈도우에서 gt가 소문자인 경우 있음
 elseif(APPLE)
     message("macOS")
+    # TODO: ... 
 elseif(UNIX)
     message("Linux or Unix")
-	find_package(GTest CONFIG REQUIRED)
+    find_package(GTest CONFIG REQUIRED) # 리눅스에서 GT가 대문자인 경우 있음 
 endif()
-
 
 # 실행 파일
 add_executable(test_compatible_chrono
     test_compatible_chrono_basic_op.cpp
 )
 
+# include 디렉토리 설정
 target_include_directories(test_compatible_chrono PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
 )
@@ -68,12 +73,15 @@ if(CMAKE_CXX_STANDARD EQUAL 17)
 
 elseif(CMAKE_CXX_STANDARD GREATER_EQUAL 20)
     message(STATUS "Using C++20 - std::chrono 사용 (date 불필요)")
-	
-    find_package(date CONFIG REQUIRED)
-    target_link_libraries(test_compatible_chrono PRIVATE
-        date::date
-        date::date-tz
-    )	
+    
+    # find_package(date CONFIG REQUIRED) # C++20에서도 date 라이브러리가 필요한 경우가 있을 수 있으므로 일단 찾기는 함.
+    #target_link_libraries(test_compatible_chrono PRIVATE
+    #    date::date  # C++20에서도 date 라이브러리가 필요한 경우가 있을 수 있으므로 일단 링크는 함.
+    #)	
+
+    # target_compile_features(test_compatible_chrono PRIVATE cxx_std_20)
+    # target_link_libraries(test_compatible_chrono PRIVATE stdc++exp)
+
 endif()
 
 # gtest 링크
