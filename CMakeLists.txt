@@ -9,10 +9,18 @@ if(DEFINED ENV{VCPKG_ROOT})
         set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
         # using x64-windows triplet 
-        set(date_DIR "$ENV{VCPKG_ROOT}/installed/x64-windows-static/share/date")
+        set(date_DIR  "$ENV{VCPKG_ROOT}/installed/x64-windows-static/share/date")
         set(gtest_DIR "$ENV{VCPKG_ROOT}/installed/x64-windows-static/share/gtest")
-    endif() 
+    elseif(APPLE)
+	message("macOS")
+    elseif(UNIX)
+	message("Linux or Unix")
 
+	set(VCPKG_TARGET_TRIPLET "x64-linux")
+
+	set(date_DIR  "$ENV{VCPKG_ROOT}/installed/x64-linux/share/date")
+	set(gtest_DIR "$ENV{VCPKG_ROOT}/installed/x64-linux/share/gtest")
+    endif()	
 endif() 
 
 project(compatible_chrono_test)
@@ -51,7 +59,6 @@ if(CMAKE_CXX_STANDARD EQUAL 17)
 elseif(CMAKE_CXX_STANDARD GREATER_EQUAL 20)
     message(STATUS "Using C++20 - std::chrono 사용 (date 불필요)")
 	
-    # 🔥 추가 (핵심)
     find_package(date CONFIG REQUIRED)
     target_link_libraries(test_compatible_chrono PRIVATE
         date::date
@@ -67,4 +74,6 @@ target_link_libraries(test_compatible_chrono PRIVATE
 # 테스트 등록
 enable_testing()
 add_test(NAME chrono_test COMMAND test_compatible_chrono)
+
+
 
