@@ -72,7 +72,7 @@ if(CMAKE_CXX_STANDARD EQUAL 17)
     )
 
 elseif(CMAKE_CXX_STANDARD GREATER_EQUAL 20)
-    message(STATUS "Using C++20 - std::chrono 사용 (date 불필요)")
+    message(STATUS "Using C++20 - std::chrono")
     
     # find_package(date CONFIG REQUIRED) # C++20에서도 date 라이브러리가 필요한 경우가 있을 수 있으므로 일단 찾기는 함.
     #target_link_libraries(test_compatible_chrono PRIVATE

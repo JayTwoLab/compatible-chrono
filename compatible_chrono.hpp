@@ -8,9 +8,19 @@
     namespace compatible_chrono = std::chrono;
     
     // C++20 supports output with std::format
-    #define CHRONO_FORMAT(fmt, tp) std::format(fmt, tp)
+    #define CHRONO_FORMAT(fmt, tp) std::format("{:" fmt "}", tp)
+
+    // #if defined(_MSC_VER)
+        // MSVC
+        // #define CHRONO_FORMAT(fmt, tp) std::format(fmt, tp)
+    // #else
+        // GCC/Clang
+        // #define CHRONO_FORMAT(fmt, tp) std::format("{:" fmt "}", tp)
+    // #endif    
+
 #else
-    // Less than C++20: Using Howard Hinnant's date library
+    // C++17 (Less than C++20): Using Howard Hinnant's date library
+
     #include <date/date.h> // Howard Hinnant's date library header
     #include <date/tz.h>  // time zone support (optional, include if needed)
     #include <date/iso_week.h> // ISO 8601 week date support (year, week number, weekday)
