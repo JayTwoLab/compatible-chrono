@@ -50,9 +50,8 @@ elseif(UNIX)
 endif()
 
 # 실행 파일
-add_executable(test_compatible_chrono
-    test_compatible_chrono_basic_op.cpp
-)
+file(GLOB SOURCES "*.cpp")
+add_executable(test_compatible_chrono ${SOURCES})
 
 # include 디렉토리 설정
 target_include_directories(test_compatible_chrono PRIVATE
