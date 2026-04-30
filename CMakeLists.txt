@@ -33,7 +33,17 @@ endif()
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # gtest
-find_package(gtest CONFIG REQUIRED)
+
+if(WIN32)
+    message("Windows")
+	find_package(gtest CONFIG REQUIRED)
+elseif(APPLE)
+    message("macOS")
+elseif(UNIX)
+    message("Linux or Unix")
+	find_package(GTest CONFIG REQUIRED)
+endif()
+
 
 # 실행 파일
 add_executable(test_compatible_chrono
