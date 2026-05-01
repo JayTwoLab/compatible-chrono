@@ -50,9 +50,7 @@ TEST(ChronoTest, SpecializedClocks) {
 #else
 TEST(ChronoTest, SpecializedClocks) {
     // C++17 
-
     try {
-
         auto utc_now = compatible_chrono::utc_clock::now(); // date::utc_clock를 이용하여 c++20의 std::chrono::utc_clock과 유사한 기능을 제공하는 date::utc_clock에서 현재 시간을 가져옴
         auto sys_now = compatible_chrono::utc_clock::to_sys(utc_now); // date::utc_clock의 시간을 시스템 시간으로 변환하여 c++20의 std::chrono::system_clock과 유사한 기능을 제공하는 date::sys_clock으로 변환
 
@@ -80,11 +78,11 @@ TEST(ChronoTest, CalendarComponents) {
 
     // 월/일 연산
     auto next_month = m + compatible_chrono::months(1);
-    EXPECT_EQ(next_month, compatible_chrono::June);
+	EXPECT_EQ(next_month, compatible_chrono::June); // 5월 다음은 6월
 
     // Last day of month (해당 월의 마지막 날)
     compatible_chrono::year_month_day_last ymdl{ y, compatible_chrono::month_day_last{m} };
-    EXPECT_EQ(ymdl.day(), compatible_chrono::day(31));
+    EXPECT_EQ(ymdl.day(), compatible_chrono::day(31)); // 5월의 마지막 날은 31일
 }
 #else
 TEST(ChronoTest, CalendarComponents) {
