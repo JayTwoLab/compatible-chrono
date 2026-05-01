@@ -73,10 +73,14 @@ if(CMAKE_CXX_STANDARD EQUAL 17)
 elseif(CMAKE_CXX_STANDARD GREATER_EQUAL 20)
     message(STATUS "Using C++20 - std::chrono")
     
-    # find_package(date CONFIG REQUIRED) # C++20에서도 date 라이브러리가 필요한 경우가 있을 수 있으므로 일단 찾기는 함.
-    #target_link_libraries(test_compatible_chrono PRIVATE
-    #    date::date  # C++20에서도 date 라이브러리가 필요한 경우가 있을 수 있으므로 일단 링크는 함.
-    #)	
+    # Even with C++20, the tz database/implementation from the date library is required for timezone APIs.
+    # Find and link the date package so the tz implementation is available.
+    find_package(date CONFIG REQUIRED)
+
+    target_link_libraries(test_compatible_chrono PRIVATE
+        date::date
+        date::date-tz
+    )
 
     # target_compile_features(test_compatible_chrono PRIVATE cxx_std_20)
     # target_link_libraries(test_compatible_chrono PRIVATE stdc++exp)
