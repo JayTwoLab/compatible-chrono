@@ -71,29 +71,13 @@ static std::string preferred_path_string(std::filesystem::path p) {
     return p.string();
 }
 
-// compatible_chrono::set_install(const std::string&) 존재 여부를 SFINAE로 감지한다.
-template<typename = void>
-struct has_set_install : std::false_type {};
-
-template<>
-struct has_set_install<std::void_t<decltype(compatible_chrono::set_install(std::declval<const std::string&>()))>>
-    : std::true_type {};
-
-// date 라이브러리(C++17 분기)의 set_install을 호출하려고 시도한다.
-// 없는 경우 또는 실패 시 조용히 무시한다.
-static void attempt_set_install(const std::filesystem::path& path) {
-#if __cplusplus < 202002L
-    if constexpr (has_set_install<>::value) {
-        try {
-            std::string p = preferred_path_string(path);
-            compatible_chrono::set_install(p);
-        } catch (...) {
-            // 실패하면 무시 (테스트가 적절히 처리)
-        }
-    }
-#else
-    (void)path;
-#endif
+// attempt_set_install: optional hook to call library-specific installation if available.
+// Many builds work correctly by setting TZDIR/TZDATA only; keep this a no-op to avoid
+// compile-time dependency on an optional API (date::set_install).
+static void attempt_set_install(const std::filesystem::path& /*path*/) {
+    // No-op: rely on TZDIR/TZDATA environment variables. If your date library requires
+    // explicit installation (e.g. date::set_install), add a small shim here or enable it
+    // behind a configure-time macro.
 }
 
 // tzdata 경로가 유효한 디렉터리인지 검사하고, 환경변수 설정 및 set_install 호출을 수행한다.
