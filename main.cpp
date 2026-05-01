@@ -81,7 +81,7 @@ template<typename = void>
 struct has_date_set_install : std::false_type {};
 
 template<>
-struct has_date_set_install<std::void_t<decltype(date::set_install(std::declval<const std::string&>()))>> : std::true_type {};
+struct has_date_set_install< std::void_t< decltype(date::set_install( std::declval<const std::string&>()) ) > > : std::true_type {};
 #endif
 
 // attempt_set_install: call library-specific installation when available (C++17/date).
