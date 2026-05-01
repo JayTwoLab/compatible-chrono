@@ -1,10 +1,10 @@
-﻿#include <gtest/gtest.h>
+﻿
+#include "compatible_chrono.hpp"
+
+#include <gtest/gtest.h>
 
 #include <ratio>
 #include <limits>
-
-#include "compatible_chrono.hpp"
-
 #include <sstream>
 #include <iomanip>
 
@@ -76,7 +76,7 @@ TEST(ChronoTest, CalendarComponents) {
     compatible_chrono::day d{ 1 };
 
     // 연도 관련 함수
-    EXPECT_TRUE(y.is_leap()); // 2026년은 윤년이 아님 (false)
+    EXPECT_FALSE(y.is_leap()); // 2026년은 윤년이 아님
 
     // 월/일 연산
     auto next_month = m + compatible_chrono::months(1);
