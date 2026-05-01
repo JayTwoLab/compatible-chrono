@@ -1,5 +1,4 @@
 #include <type_traits>
-#include <chrono>
 
 #include <gtest/gtest.h>
 

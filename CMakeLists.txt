@@ -92,5 +92,52 @@ target_link_libraries(test_compatible_chrono PRIVATE
 enable_testing()
 add_test(NAME chrono_test COMMAND test_compatible_chrono)
 
+# 설정: 프로젝트 루트의 tzdata 폴더를 사용
+set(TZDATA_DIR "${CMAKE_CURRENT_SOURCE_DIR}/tzdata")
+
+if(EXISTS "${TZDATA_DIR}")
+    message(STATUS "Using tzdata from: ${TZDATA_DIR}")
+
+    # 1) CMake/CTest 프로세스 환경변수 (런타임에 CTest로 실행될 때 적용)
+    # NOTE: set(ENV{...})는 CMake/CTest 프로세스에만 적용됩니다.
+    set(ENV{TZDIR} "${TZDATA_DIR}")
+    set(ENV{TZDATA} "${TZDATA_DIR}")
+
+    # 2) 각 테스트 등록 시 테스트에 환경변수 전달 (예: 테스트가 add_test 로 등록된 경우)
+    # 예시: 단일 테스트 실행 파일 'test_compatible_chrono' 가 있을 때
+    if(TARGET test_compatible_chrono)
+        # 테스트로 등록되어 있지 않다면 add_test 를 사용해 등록하세요:
+        add_test(NAME test_compatible_chrono COMMAND test_compatible_chrono)
+
+        # CTest 실행 시 ENVIRONMENT 설정
+        set_tests_properties(test_compatible_chrono PROPERTIES
+            ENVIRONMENT "TZDIR=${TZDATA_DIR};TZDATA=${TZDATA_DIR}"
+        )
+
+        # Visual Studio 디버거에서 실행할 때 환경변수로 전달 (VS-specific)
+        set_target_properties(test_compatible_chrono PROPERTIES
+            VS_DEBUGGER_ENVIRONMENT "TZDIR=${TZDATA_DIR};TZDATA=${TZDATA_DIR}"
+        )
+    endif()
+
+    # 3) 여러 테스트 타겟에 적용하는 예시 (타겟 리스트를 채워 사용)
+    set(TEST_TARGETS test_compatible_chrono) # 추가 테스트 이름을 공백으로 구분하여 넣으세요
+    foreach(t ${TEST_TARGETS})
+        if(TARGET ${t})
+            set_target_properties(${t} PROPERTIES
+                VS_DEBUGGER_ENVIRONMENT "TZDIR=${TZDATA_DIR};TZDATA=${TZDATA_DIR}"
+            )
+            # 등록된 테스트가 이미 있다면 set_tests_properties 로 ENVIRONMENT 갱신 가능
+            set_tests_properties(${t} PROPERTIES
+                ENVIRONMENT "TZDIR=${TZDATA_DIR};TZDATA=${TZDATA_DIR}"
+            )
+        endif()
+    endforeach()
+else()
+    message(WARNING "tzdata directory not found at ${TZDATA_DIR}; timezone DB tests may fail.")
+endif()
+
+target_compile_definitions(test_compatible_chrono PRIVATE PROJECT_SOURCE_DIR_TZDATA="${CMAKE_CURRENT_SOURCE_DIR}/tzdata")
+
 
 
