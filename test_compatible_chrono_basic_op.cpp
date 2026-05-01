@@ -1,5 +1,4 @@
-﻿
-#include <sstream>
+﻿#include <sstream>
 #include <string>
 #include <exception>
 
@@ -7,28 +6,28 @@
 
 #include "compatible_chrono.hpp"
 
-// Helper: a common "now" and day-floor used in several tests
+// 헬퍼: 여러 테스트에서 공통으로 사용하는 "오늘"과 일 단위로 내림(floor) 처리한 값
 static auto get_today_sys_days()
 {
     auto now = std::chrono::system_clock::now();
     return compatible_chrono::floor<compatible_chrono::days>(now);
-} 
+}  
 
-// Date equality and basic construction
+// 날짜 동등성 및 기본 생성 테스트
 TEST(ChronoCompatibility, DateEqualityAndConstruction) {
     auto sd = get_today_sys_days();
     auto ymd = compatible_chrono::year_month_day{sd};
 
     EXPECT_EQ(ymd, compatible_chrono::year_month_day{sd});
 
-    // Direct Construction roundtrip
+    // 직접 구성 후 다시 변환(roundtrip) 확인
     compatible_chrono::year_month_day ymd2{compatible_chrono::year{2026}, compatible_chrono::month{4}, compatible_chrono::day{27}};
     auto sys_days2 = compatible_chrono::sys_days{ymd2};
     EXPECT_EQ(ymd2, compatible_chrono::year_month_day{sys_days2});
     EXPECT_EQ(CHRONO_FORMAT("%Y-%m-%d", sys_days2), std::string("2026-04-27"));
 }
 
-// Formatting
+// 포맷팅 테스트
 TEST(ChronoCompatibility, Formatting) {
     auto now = std::chrono::system_clock::now();
     auto sd = compatible_chrono::floor<compatible_chrono::days>(now);
@@ -38,7 +37,7 @@ TEST(ChronoCompatibility, Formatting) {
     EXPECT_EQ(s, s2);
 }
 
-// Date arithmetic
+// 날짜 산술 연산 테스트 (다음 주 계산)
 TEST(ChronoCompatibility, DateArithmetic_NextWeek) {
     auto sd = get_today_sys_days();
     auto next_week = sd + compatible_chrono::days{7};
@@ -48,7 +47,7 @@ TEST(ChronoCompatibility, DateArithmetic_NextWeek) {
     EXPECT_EQ(CHRONO_FORMAT("%Y-%m-%d", next_week), CHRONO_FORMAT("%Y-%m-%d", sd + compatible_chrono::days{7}));
 }
 
-// Parsing from string
+// 문자열로부터의 파싱 테스트
 TEST(ChronoCompatibility, ParsingFromString) {
     std::istringstream in("2026-05-05");
     compatible_chrono::sys_days parsed_date;
@@ -59,7 +58,7 @@ TEST(ChronoCompatibility, ParsingFromString) {
     EXPECT_EQ(CHRONO_FORMAT("%Y-%m-%d", parsed_date), std::string("2026-05-05"));
 }
 
-// Last day of month
+// 월의 마지막 날 처리 테스트
 TEST(ChronoCompatibility, LastDayOfMonth) {
     compatible_chrono::year_month_day_last last_day{compatible_chrono::year{2026}, compatible_chrono::month_day_last{compatible_chrono::month{4}}};
     auto sys_days_last = compatible_chrono::sys_days{last_day};
@@ -69,7 +68,7 @@ TEST(ChronoCompatibility, LastDayOfMonth) {
     EXPECT_EQ(CHRONO_FORMAT("%Y-%m-%d", sys_days_last), std::string("2026-04-30"));
 }
 
-// Weekday range
+// 요일 범위 검사 (0..6)
 TEST(ChronoCompatibility, WeekdayRange) {
     auto sd = get_today_sys_days();
     auto weekday = compatible_chrono::weekday{sd};
@@ -77,7 +76,7 @@ TEST(ChronoCompatibility, WeekdayRange) {
     EXPECT_LE(weekday.c_encoding(), 6);
 }
 
-// Timezone handling (may skip when tzdb missing)
+// 타임존 처리 테스트 (tz 데이터베이스가 없을 경우 생략 가능)
 // TEST(ChronoCompatibility, TimezoneHandling) {
 //     auto now = std::chrono::system_clock::now();
 //     try {
@@ -91,11 +90,11 @@ TEST(ChronoCompatibility, WeekdayRange) {
 //         EXPECT_EQ(CHRONO_FORMAT("%Y-%m-%d %H:%M:%S", local_time), CHRONO_FORMAT("%Y-%m- %  //%/:/%M:%S", tz->to_local(now)));
 // #endif
 //     } catch (const std::exception& e) {
-//         GTEST_SKIP() << "Timezone database unavailable or incompatible: " << e.what();
+//         GTEST_SKIP() << "타임존 데이터베이스를 사용할 수 없거나 호환되지 않습니다: " << e.what();
 //     }
 // }
 
-// Leap year
+// 윤년 처리 테스트 (2024-02-29)
 TEST(ChronoCompatibility, LeapYearHandling) {
     compatible_chrono::year_month_day leap_day{compatible_chrono::year{2024}, compatible_chrono::month{2}, compatible_chrono::day{29}};
     auto sys_leap = compatible_chrono::sys_days{leap_day};
@@ -103,7 +102,7 @@ TEST(ChronoCompatibility, LeapYearHandling) {
     EXPECT_EQ(CHRONO_FORMAT("%Y-%m-%d", sys_leap), std::string("2024-02-29"));
 }
 
-// End of month
+// 월말 처리 테스트 (1월 31일)
 TEST(ChronoCompatibility, EndOfMonthHandling) {
     compatible_chrono::year_month_day end_of_month{compatible_chrono::year{2026}, compatible_chrono::month{1}, compatible_chrono::day{31}};
     auto sys_end = compatible_chrono::sys_days{end_of_month};
@@ -111,7 +110,7 @@ TEST(ChronoCompatibility, EndOfMonthHandling) {
     EXPECT_EQ(CHRONO_FORMAT("%Y-%m-%d", sys_end), std::string("2026-01-31"));
 }
 
-// Negative duration
+// 음수 기간 처리 테스트 (과거 날짜 계산)
 TEST(ChronoCompatibility, NegativeDurationHandling) {
     auto sd = get_today_sys_days();
     auto past_date = sd - compatible_chrono::days{365};
@@ -121,7 +120,7 @@ TEST(ChronoCompatibility, NegativeDurationHandling) {
     EXPECT_EQ(CHRONO_FORMAT("%Y-%m-%d", past_date), CHRONO_FORMAT("%Y-%m-%d", sd - compatible_chrono::days{365}));
 }
 
-// Large duration
+// 큰 기간 처리 테스트 (100년 후)
 TEST(ChronoCompatibility, LargeDurationHandling) {
     auto sd = get_today_sys_days();
     auto future_date = sd + compatible_chrono::days{365 * 100};
@@ -130,7 +129,7 @@ TEST(ChronoCompatibility, LargeDurationHandling) {
     EXPECT_EQ(ymd_future, expected_future);
 }
 
-// Month overflow
+// 월 오버플로우 처리 테스트 (13월 -> 다음 해 1월로 전환)
 TEST(ChronoCompatibility, MonthOverflowHandling) {
     compatible_chrono::year_month_day month_overflow{compatible_chrono::year{2026}, compatible_chrono::month{13}, compatible_chrono::day{1}};
     auto sys_month_overflow = compatible_chrono::sys_days{month_overflow};
@@ -139,7 +138,7 @@ TEST(ChronoCompatibility, MonthOverflowHandling) {
     EXPECT_EQ(ymd_month_overflow, expected_month_overflow);
 }
 
-// Year overflow
+// 연도 경계 처리 테스트 (최대값 근처의 연도 처리)
 TEST(ChronoCompatibility, YearOverflowHandling) {
     compatible_chrono::year_month_day year_overflow{compatible_chrono::year{32767}, compatible_chrono::month{12}, compatible_chrono::day{31}};
     auto sys_year_overflow = compatible_chrono::sys_days{year_overflow};
