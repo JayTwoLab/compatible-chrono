@@ -141,7 +141,16 @@ else()
     message(WARNING "tzdata directory not found at ${TZDATA_DIR}; timezone DB tests may fail.")
 endif()
 
-target_compile_definitions(test_compatible_chrono PRIVATE PROJECT_SOURCE_DIR_TZDATA="${CMAKE_CURRENT_SOURCE_DIR}/tzdata")
+target_compile_definitions(test_compatible_chrono PRIVATE
+    "PROJECT_SOURCE_DIR_TZDATA=\"${CMAKE_CURRENT_SOURCE_DIR}/tzdata\""
+)
+
+# Add option to enable calling date::set_install when present
+option(USE_DATE_SET_INSTALL "Call date::set_install() at runtime when tzdata provided" OFF)
+
+if(USE_DATE_SET_INSTALL)
+    target_compile_definitions(test_compatible_chrono PRIVATE USE_DATE_SET_INSTALL)
+endif()
 
 
 

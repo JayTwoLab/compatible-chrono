@@ -1,3 +1,4 @@
+
 #include "compatible_chrono.hpp"
 
 #include <gtest/gtest.h>
@@ -14,6 +15,8 @@
 #if defined(_WIN32)
 #  include <Windows.h>
 #endif
+
+
 
 // 환경변수 설정을 플랫폼별로 수행한다.
 // Windows: _putenv_s, POSIX: setenv 사용
@@ -71,13 +74,33 @@ static std::string preferred_path_string(std::filesystem::path p) {
     return p.string();
 }
 
-// attempt_set_install: optional hook to call library-specific installation if available.
-// Many builds work correctly by setting TZDIR/TZDATA only; keep this a no-op to avoid
-// compile-time dependency on an optional API (date::set_install).
-static void attempt_set_install(const std::filesystem::path& /*path*/) {
-    // No-op: rely on TZDIR/TZDATA environment variables. If your date library requires
-    // explicit installation (e.g. date::set_install), add a small shim here or enable it
-    // behind a configure-time macro.
+#if __cplusplus < 202002L
+// Detect presence of date::set_install(const std::string&) using SFINAE.
+// This avoids hard compile-time dependency when the API is not available.
+template<typename = void>
+struct has_date_set_install : std::false_type {};
+
+template<>
+struct has_date_set_install<std::void_t<decltype(date::set_install(std::declval<const std::string&>()))>> : std::true_type {};
+#endif
+
+// attempt_set_install: call library-specific installation when available (C++17/date).
+static void attempt_set_install(const std::filesystem::path& path) {
+#if __cplusplus < 202002L
+    if constexpr (has_date_set_install<>::value) {
+        try {
+            std::string p = preferred_path_string(path);
+            // Call the date library hook to register the tzdata location.
+            date::set_install(p);
+        } catch (...) {
+            // ignore errors; fallback is environment variables
+        }
+    } else {
+        (void)path; // API not available; no-op
+    }
+#else
+    (void)path;
+#endif
 }
 
 // tzdata 경로가 유효한 디렉터리인지 검사하고, 환경변수 설정 및 set_install 호출을 수행한다.
