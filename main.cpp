@@ -1,4 +1,3 @@
-
 #include "compatible_chrono.hpp"
 
 #include <gtest/gtest.h>
@@ -15,7 +14,6 @@
 #if defined(_WIN32)
 #  include <Windows.h>
 #endif
-
 
 
 // 환경변수 설정을 플랫폼별로 수행한다.
@@ -74,34 +72,24 @@ static std::string preferred_path_string(std::filesystem::path p) {
     return p.string();
 }
 
-#if __cplusplus < 202002L
-// Detect presence of date::set_install(const std::string&) using SFINAE.
-// This avoids hard compile-time dependency when the API is not available.
-template<typename = void>
-struct has_date_set_install : std::false_type {};
-
-template<>
-struct has_date_set_install< std::void_t< decltype(date::set_install( std::declval<const std::string&>()) ) > > : std::true_type {};
-#endif
-
-// attempt_set_install: call library-specific installation when available (C++17/date).
+#if defined(_WIN32) && (__cplusplus < 202002L)
+// Windows + C++17 빌드에서만 date::set_install 호출
+// compatible_chrono.hpp는 C++17에서 date/tz.h 를 포함하므로 date::set_install 존재 시 바로 사용 가능.
 static void attempt_set_install(const std::filesystem::path& path) {
-#if __cplusplus < 202002L
-    if constexpr (has_date_set_install<>::value) {
-        try {
-            std::string p = preferred_path_string(path);
-            // Call the date library hook to register the tzdata location.
-            date::set_install(p);
-        } catch (...) {
-            // ignore errors; fallback is environment variables
-        }
-    } else {
-        (void)path; // API not available; no-op
+    try {
+        std::string p = preferred_path_string(path);
+        // date 라이브러리에 tzdata 경로를 명시적으로 등록
+        date::set_install(p);
+    } catch (...) {
+        // 실패해도 조용히 무시 (환경변수 설정으로도 동작)
     }
-#else
-    (void)path;
-#endif
 }
+#else
+// 그 외 환경에서는 no-op
+static void attempt_set_install(const std::filesystem::path& /*path*/) {
+    // no-op
+}
+#endif
 
 // tzdata 경로가 유효한 디렉터리인지 검사하고, 환경변수 설정 및 set_install 호출을 수행한다.
 // 성공하면 true 반환.
