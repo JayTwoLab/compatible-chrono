@@ -5,6 +5,7 @@
 #include "compatible_chrono.hpp"
 
 // Detect presence of variable-template compatible_chrono::is_clock_v<T>
+// 변수 템플릿 `compatible_chrono::is_clock_v<T>`의 존재 여부를 감지
 template <typename T, typename = void>
 struct has_is_clock_v : std::false_type {};
 
@@ -12,12 +13,14 @@ template <typename T>
 struct has_is_clock_v<T, std::void_t<decltype(compatible_chrono::is_clock_v<T>)>> : std::true_type {};
 
 // Detect presence of class-template compatible_chrono::is_clock<T>::value
+// 클래스 템플릿 `compatible_chrono::is_clock<T>::value`의 존재 여부를 감지
 template <typename T, typename = void>
 struct has_is_clock_trait_class : std::false_type {};
 
 template <typename T>
 struct has_is_clock_trait_class<T, std::void_t<decltype(compatible_chrono::is_clock<T>::value)>> : std::true_type {};
 
+// 테스트: variable-template가 있으면 우선 사용, 없으면 class-trait를 사용, 둘 다 없으면 테스트 생략
 TEST(CompatibleChronoTraits, IsClockTraitBehavior) {
     // Prefer variable-template if available, fall back to class trait, otherwise skip.
     if constexpr (has_is_clock_v<std::chrono::system_clock>::value) {
@@ -32,3 +35,5 @@ TEST(CompatibleChronoTraits, IsClockTraitBehavior) {
         GTEST_SKIP() << "compatible_chrono::is_clock / is_clock_v is not available in this configuration.";
     }
 }
+
+
