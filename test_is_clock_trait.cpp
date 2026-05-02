@@ -1,8 +1,9 @@
-#include <type_traits>
+#include "compatible_chrono.hpp"
 
 #include <gtest/gtest.h>
 
-#include "compatible_chrono.hpp"
+#include <type_traits>
+
 
 // Detect presence of variable-template compatible_chrono::is_clock_v<T>
 // 변수 템플릿 `compatible_chrono::is_clock_v<T>`의 존재 여부를 감지
