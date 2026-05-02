@@ -1,4 +1,4 @@
-﻿
+
 #include "compatible_chrono.hpp"
 
 #include <gtest/gtest.h>
@@ -11,7 +11,7 @@
 #if __cplusplus >= 202002L 
     #include <format>
 #endif 
-   
+     
 // 1. Ratio (시간 단위의 기반이 되는 비율) 테스트
 TEST(ChronoTest, RatioCheck) {
     // std::micro (1/1,000,000) 등 기본 비율 확인

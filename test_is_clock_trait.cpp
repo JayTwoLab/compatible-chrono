@@ -5,22 +5,22 @@
 #include "compatible_chrono.hpp"
 
 // Detect presence of variable-template compatible_chrono::is_clock_v<T>
-// º¯¼ö ÅÛÇÃ¸´ `compatible_chrono::is_clock_v<T>`ÀÇ Á¸Àç ¿©ºÎ¸¦ °¨Áö
+// ë³€ìˆ˜ í…œí”Œë¦¿ `compatible_chrono::is_clock_v<T>`ì˜ ì¡´ì¬ ì—¬ë¶€ë¥¼ ê°ì§€
 template <typename T, typename = void>
 struct has_is_clock_v : std::false_type {};
-
+  
 template <typename T>
 struct has_is_clock_v<T, std::void_t<decltype(compatible_chrono::is_clock_v<T>)>> : std::true_type {};
 
 // Detect presence of class-template compatible_chrono::is_clock<T>::value
-// Å¬·¡½º ÅÛÇÃ¸´ `compatible_chrono::is_clock<T>::value`ÀÇ Á¸Àç ¿©ºÎ¸¦ °¨Áö
+// í´ë˜ìŠ¤ í…œí”Œë¦¿ `compatible_chrono::is_clock<T>::value`ì˜ ì¡´ì¬ ì—¬ë¶€ë¥¼ ê°ì§€
 template <typename T, typename = void>
 struct has_is_clock_trait_class : std::false_type {};
 
 template <typename T>
 struct has_is_clock_trait_class<T, std::void_t<decltype(compatible_chrono::is_clock<T>::value)>> : std::true_type {};
 
-// Å×½ºÆ®: variable-template°¡ ÀÖÀ¸¸é ¿ì¼± »ç¿ë, ¾øÀ¸¸é class-trait¸¦ »ç¿ë, µÑ ´Ù ¾øÀ¸¸é Å×½ºÆ® »ı·«
+// í…ŒìŠ¤íŠ¸: variable-templateê°€ ìˆìœ¼ë©´ ìš°ì„  ì‚¬ìš©, ì—†ìœ¼ë©´ class-traitë¥¼ ì‚¬ìš©, ë‘˜ ë‹¤ ì—†ìœ¼ë©´ í…ŒìŠ¤íŠ¸ ìƒëµ
 TEST(CompatibleChronoTraits, IsClockTraitBehavior) {
     // Prefer variable-template if available, fall back to class trait, otherwise skip.
     if constexpr (has_is_clock_v<std::chrono::system_clock>::value) {
@@ -36,4 +36,4 @@ TEST(CompatibleChronoTraits, IsClockTraitBehavior) {
     }
 }
 
-
+  

@@ -14,10 +14,10 @@
 #if defined(_WIN32)
 #  include <Windows.h>
 #endif
-
-
-// È¯°æº¯¼ö ¼³Á¤À» ÇÃ·§Æûº°·Î ¼öÇàÇÑ´Ù.
-// Windows: _putenv_s, POSIX: setenv »ç¿ë
+  
+  
+// í™˜ê²½ë³€ìˆ˜ ì„¤ì •ì„ í”Œë«í¼ë³„ë¡œ ìˆ˜í–‰í•œë‹¤.
+// Windows: _putenv_s, POSIX: setenv ì‚¬ìš©
 static bool set_env_var(const std::string& name, const std::string& value) {
 #ifdef _WIN32
     return _putenv_s(name.c_str(), value.c_str()) == 0;
@@ -26,8 +26,8 @@ static bool set_env_var(const std::string& name, const std::string& value) {
 #endif
 }
 
-// ½ÃÀÛ µğ·ºÅÍ¸®¿¡¼­ »óÀ§ ¹æÇâÀ¸·Î 'tzdata' µğ·ºÅÍ¸®¸¦ Å½»öÇØ Ã£´Â´Ù.
-// ¹ß°ß ½Ã canonical °æ·Î¸¦ ¹İÈ¯ÇÑ´Ù.
+// ì‹œì‘ ë””ë ‰í„°ë¦¬ì—ì„œ ìƒìœ„ ë°©í–¥ìœ¼ë¡œ 'tzdata' ë””ë ‰í„°ë¦¬ë¥¼ íƒìƒ‰í•´ ì°¾ëŠ”ë‹¤.
+// ë°œê²¬ ì‹œ canonical ê²½ë¡œë¥¼ ë°˜í™˜í•œë‹¤.
 static std::optional<std::filesystem::path> find_upwards_tzdata(std::filesystem::path start, int max_up = 8) {
     namespace fs = std::filesystem;
     fs::path p = start;
@@ -43,7 +43,7 @@ static std::optional<std::filesystem::path> find_upwards_tzdata(std::filesystem:
     return std::nullopt;
 }
 
-// ½ÇÇà ÆÄÀÏÀÇ µğ·ºÅÍ¸®¸¦ ¾ò´Â´Ù (Windows¿Í POSIX¿ë ºĞ±â).
+// ì‹¤í–‰ íŒŒì¼ì˜ ë””ë ‰í„°ë¦¬ë¥¼ ì–»ëŠ”ë‹¤ (Windowsì™€ POSIXìš© ë¶„ê¸°).
 static std::optional<std::filesystem::path> get_executable_dir() {
     namespace fs = std::filesystem;
 #if defined(_WIN32)
@@ -65,34 +65,34 @@ static std::optional<std::filesystem::path> get_executable_dir() {
 #endif
 }
 
-// ÆÄÀÏ½Ã½ºÅÛ °æ·Î¸¦ ÇÃ·§Æû ³×ÀÌÆ¼ºê Çü½Ä(Windows¿¡¼­´Â ¿ª½½·¡½Ã)À¸·Î º¯È¯ÇÏ¿© ¹İÈ¯ÇÑ´Ù.
-// ÀÌ¸¦ ÅëÇØ È¯°æº¯¼ö³ª date::set_install µî¿¡ Àü´ŞµÇ´Â °æ·Î Ç¥±â¸¦ ÀÏ°üµÇ°Ô ÇÑ´Ù.
+// íŒŒì¼ì‹œìŠ¤í…œ ê²½ë¡œë¥¼ í”Œë«í¼ ë„¤ì´í‹°ë¸Œ í˜•ì‹(Windowsì—ì„œëŠ” ì—­ìŠ¬ë˜ì‹œ)ìœ¼ë¡œ ë³€í™˜í•˜ì—¬ ë°˜í™˜í•œë‹¤.
+// ì´ë¥¼ í†µí•´ í™˜ê²½ë³€ìˆ˜ë‚˜ date::set_install ë“±ì— ì „ë‹¬ë˜ëŠ” ê²½ë¡œ í‘œê¸°ë¥¼ ì¼ê´€ë˜ê²Œ í•œë‹¤.
 static std::string preferred_path_string(std::filesystem::path p) {
     p.make_preferred();
     return p.string();
 }
 
 #if defined(_WIN32) && (__cplusplus < 202002L)
-// Windows + C++17 ºôµå¿¡¼­¸¸ date::set_install È£Ãâ
-// compatible_chrono.hpp´Â C++17¿¡¼­ date/tz.h ¸¦ Æ÷ÇÔÇÏ¹Ç·Î date::set_install Á¸Àç ½Ã ¹Ù·Î »ç¿ë °¡´É.
+// Windows + C++17 ë¹Œë“œì—ì„œë§Œ date::set_install í˜¸ì¶œ
+// compatible_chrono.hppëŠ” C++17ì—ì„œ date/tz.h ë¥¼ í¬í•¨í•˜ë¯€ë¡œ date::set_install ì¡´ì¬ ì‹œ ë°”ë¡œ ì‚¬ìš© ê°€ëŠ¥.
 static void attempt_set_install(const std::filesystem::path& path) {
     try {
         std::string p = preferred_path_string(path);
-        // date ¶óÀÌºê·¯¸®¿¡ tzdata °æ·Î¸¦ ¸í½ÃÀûÀ¸·Î µî·Ï
+        // date ë¼ì´ë¸ŒëŸ¬ë¦¬ì— tzdata ê²½ë¡œë¥¼ ëª…ì‹œì ìœ¼ë¡œ ë“±ë¡
         date::set_install(p);
     } catch (...) {
-        // ½ÇÆĞÇØµµ Á¶¿ëÈ÷ ¹«½Ã (È¯°æº¯¼ö ¼³Á¤À¸·Îµµ µ¿ÀÛ)
+        // ì‹¤íŒ¨í•´ë„ ì¡°ìš©íˆ ë¬´ì‹œ (í™˜ê²½ë³€ìˆ˜ ì„¤ì •ìœ¼ë¡œë„ ë™ì‘)
     }
 }
 #else
-// ±× ¿Ü È¯°æ¿¡¼­´Â no-op
+// ê·¸ ì™¸ í™˜ê²½ì—ì„œëŠ” no-op
 static void attempt_set_install(const std::filesystem::path& /*path*/) {
     // no-op
 }
 #endif
 
-// tzdata °æ·Î°¡ À¯È¿ÇÑ µğ·ºÅÍ¸®ÀÎÁö °Ë»çÇÏ°í, È¯°æº¯¼ö ¼³Á¤ ¹× set_install È£ÃâÀ» ¼öÇàÇÑ´Ù.
-// ¼º°øÇÏ¸é true ¹İÈ¯.
+// tzdata ê²½ë¡œê°€ ìœ íš¨í•œ ë””ë ‰í„°ë¦¬ì¸ì§€ ê²€ì‚¬í•˜ê³ , í™˜ê²½ë³€ìˆ˜ ì„¤ì • ë° set_install í˜¸ì¶œì„ ìˆ˜í–‰í•œë‹¤.
+// ì„±ê³µí•˜ë©´ true ë°˜í™˜.
 static bool configure_tz_from_path(const std::filesystem::path& tzdir) {
     try {
         if (!std::filesystem::exists(tzdir) || !std::filesystem::is_directory(tzdir))
@@ -107,7 +107,7 @@ static bool configure_tz_from_path(const std::filesystem::path& tzdir) {
     }
 }
 
-// ½ÃÀÛ °æ·Î¿¡¼­ »óÀ§ Å½»öÀ¸·Î tzdata¸¦ Ã£°í, Ã£À¸¸é ±¸¼ºÇÑ´Ù.
+// ì‹œì‘ ê²½ë¡œì—ì„œ ìƒìœ„ íƒìƒ‰ìœ¼ë¡œ tzdataë¥¼ ì°¾ê³ , ì°¾ìœ¼ë©´ êµ¬ì„±í•œë‹¤.
 static bool try_set_from_candidate(const std::filesystem::path& start) {
     if (auto found = find_upwards_tzdata(start)) {
         return configure_tz_from_path(*found);
@@ -123,13 +123,13 @@ int main(int argc, char** argv) {
 	std::cout << "Running with C++17 chrono support" << std::endl;
 #endif
 
-    // ¿ì¼± ÀÌ¹Ì ¼³Á¤µÈ TZDIR/TZDATA°¡ ÀÖÀ¸¸é ±×´ë·Î Å×½ºÆ® ½ÇÇà
+    // ìš°ì„  ì´ë¯¸ ì„¤ì •ëœ TZDIR/TZDATAê°€ ìˆìœ¼ë©´ ê·¸ëŒ€ë¡œ í…ŒìŠ¤íŠ¸ ì‹¤í–‰
     if (std::getenv("TZDIR") || std::getenv("TZDATA")) {
         ::testing::InitGoogleTest(&argc, argv);
         return RUN_ALL_TESTS();
     }
 
-    // CMake°¡ PROJECT_SOURCE_DIR_TZDATA¸¦ ÁÖÀÔÇß´Ù¸é ¿ì¼± »ç¿ë
+    // CMakeê°€ PROJECT_SOURCE_DIR_TZDATAë¥¼ ì£¼ì…í–ˆë‹¤ë©´ ìš°ì„  ì‚¬ìš©
 #ifdef PROJECT_SOURCE_DIR_TZDATA
     {
         std::filesystem::path p(PROJECT_SOURCE_DIR_TZDATA);
@@ -142,7 +142,7 @@ int main(int argc, char** argv) {
 
     namespace fs = std::filesystem;
 
-    // ½ÇÇà ÆÄÀÏ À§Ä¡¸¦ ±âÁØÀ¸·Î tzdata Å½»ö ¹× ¼³Á¤ ½Ãµµ
+    // ì‹¤í–‰ íŒŒì¼ ìœ„ì¹˜ë¥¼ ê¸°ì¤€ìœ¼ë¡œ tzdata íƒìƒ‰ ë° ì„¤ì • ì‹œë„
     if (auto exe_dir = get_executable_dir()) {
         if (try_set_from_candidate(*exe_dir)) {
             ::testing::InitGoogleTest(&argc, argv);
@@ -150,7 +150,7 @@ int main(int argc, char** argv) {
         }
     }
 
-    // argv[0] °æ·Î¸¦ ±âÁØÀ¸·Î tzdata Å½»ö ¹× ¼³Á¤ ½Ãµµ (argv[0]ÀÌ °æ·Î¸¦ Æ÷ÇÔÇÏ´Â °æ¿ì À¯¿ë)
+    // argv[0] ê²½ë¡œë¥¼ ê¸°ì¤€ìœ¼ë¡œ tzdata íƒìƒ‰ ë° ì„¤ì • ì‹œë„ (argv[0]ì´ ê²½ë¡œë¥¼ í¬í•¨í•˜ëŠ” ê²½ìš° ìœ ìš©)
     if (argc > 0 && argv[0]) {
         try {
             fs::path p(argv[0]);
@@ -162,7 +162,7 @@ int main(int argc, char** argv) {
         } catch (...) {}
     }
 
-    // ÇöÀç ÀÛ¾÷ µğ·ºÅÍ¸®¿¡¼­ »óÀ§·Î Å½»öÇÏ¿© tzdata¸¦ Ã£°í ¼³Á¤
+    // í˜„ì¬ ì‘ì—… ë””ë ‰í„°ë¦¬ì—ì„œ ìƒìœ„ë¡œ íƒìƒ‰í•˜ì—¬ tzdataë¥¼ ì°¾ê³  ì„¤ì •
     try {
         if (try_set_from_candidate(fs::current_path())) {
             ::testing::InitGoogleTest(&argc, argv);
@@ -171,7 +171,7 @@ int main(int argc, char** argv) {
             std::cerr << "tzdata not found under exe/src/current tree; tests may fail if tzdb required.\n";
         }
     } catch (...) { 
-        // ÆÄÀÏ½Ã½ºÅÛ ¿¹¿Ü´Â ¹«½ÃÇÏ°í Å×½ºÆ® ÁøÇà
+        // íŒŒì¼ì‹œìŠ¤í…œ ì˜ˆì™¸ëŠ” ë¬´ì‹œí•˜ê³  í…ŒìŠ¤íŠ¸ ì§„í–‰
     }
 
     ::testing::InitGoogleTest(&argc, argv);

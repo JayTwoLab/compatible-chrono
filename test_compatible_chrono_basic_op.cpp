@@ -1,4 +1,4 @@
-﻿#include <sstream>
+#include <sstream>
 #include <string>
 #include <exception>
 
@@ -12,7 +12,7 @@ static auto get_today_sys_days()
     auto now = std::chrono::system_clock::now();
     return compatible_chrono::floor<compatible_chrono::days>(now);
 }  
-
+  
 // 날짜 동등성 및 기본 생성 테스트
 TEST(ChronoCompatibility, DateEqualityAndConstruction) {
     auto sd = get_today_sys_days();
