@@ -9,7 +9,7 @@
 #include <iomanip>
 
 #if __cplusplus >= 202002L 
-#  include <format>
+    #include <format>
 #endif 
    
 // 1. Ratio (시간 단위의 기반이 되는 비율) 테스트
@@ -36,7 +36,7 @@ TEST(ChronoTest, DurationAdvanced) {
 
 // 3. 다양한 Clock 타입 테스트 (C++20 포함)
 #if __cplusplus >= 202002L
-    // C++20에서는 std::chrono::utc_clock, std::chrono::tai_clock, std::chrono::gps_clock 등이 도입됨
+// C++20 
 TEST(ChronoTest, SpecializedClocks) {
     // gps_clock: GPS 시간 (1980년 기준)
     // tai_clock: 국제 원자시 (윤초 포함)
@@ -48,8 +48,8 @@ TEST(ChronoTest, SpecializedClocks) {
     EXPECT_GT(sys_now.time_since_epoch().count(), 0);
 }
 #else
+// C++17 
 TEST(ChronoTest, SpecializedClocks) {
-    // C++17 
     try {
         auto utc_now = compatible_chrono::utc_clock::now(); // date::utc_clock를 이용하여 c++20의 std::chrono::utc_clock과 유사한 기능을 제공하는 date::utc_clock에서 현재 시간을 가져옴
         auto sys_now = compatible_chrono::utc_clock::to_sys(utc_now); // date::utc_clock의 시간을 시스템 시간으로 변환하여 c++20의 std::chrono::system_clock과 유사한 기능을 제공하는 date::sys_clock으로 변환
@@ -61,7 +61,7 @@ TEST(ChronoTest, SpecializedClocks) {
         std::string err = e.what();
         FAIL() << "Exception occurred: " << err; // Timezone database not found at ...
     } catch (...) {
-        FAIL() << "Unknown exception occurred";
+        FAIL() << "Unknown exception occurred.";
     }
 }
 #endif
@@ -88,17 +88,26 @@ TEST(ChronoTest, CalendarComponents) {
 #else
 // C++17 
 TEST(ChronoTest, CalendarComponents) {
-    GTEST_SKIP() << "Calendar components require C++20 chrono/calendar support";
+    compatible_chrono::year y{ 2026 };
+    compatible_chrono::month m{ compatible_chrono::May };
+    compatible_chrono::day d{ 1 };
 
+    // 연도 관련 함수 
+    EXPECT_FALSE(y.is_leap()); // 2026년은 윤년이 아님
 
+    // 월/일 연산
+    auto next_month = m + compatible_chrono::months(1);
+    EXPECT_EQ(next_month, compatible_chrono::June); // 5월 다음은 6월
 
-
-
+    // Last day of month (해당 월의 마지막 날)
+    compatible_chrono::year_month_day_last ymdl{ y, compatible_chrono::month_day_last{m} };
+    EXPECT_EQ(ymdl.day(), compatible_chrono::day(31)); // 5월의 마지막 날은 31일
 }
 #endif
 
 // 5. hh_mm_ss (Time of Day - C++20)
 #if __cplusplus >= 202002L
+// C++20 
 TEST(ChronoTest, TimeOfDay) {
     compatible_chrono::seconds total_secs(3661); // 1시간 1분 1초
     compatible_chrono::hh_mm_ss tod{ total_secs };
@@ -109,13 +118,21 @@ TEST(ChronoTest, TimeOfDay) {
     EXPECT_FALSE(tod.is_negative()); // 양수 시간
 }
 #else
+// C++17 
 TEST(ChronoTest, TimeOfDay) {
-    GTEST_SKIP() << "hh_mm_ss requires C++20 chrono support";
+    compatible_chrono::seconds total_secs(3661); // 1시간 1분 1초
+    compatible_chrono::hh_mm_ss tod{ total_secs };
+
+    EXPECT_EQ(tod.hours().count(), 1);
+    EXPECT_EQ(tod.minutes().count(), 1);
+    EXPECT_EQ(tod.seconds().count(), 1);
+    EXPECT_FALSE(tod.is_negative()); // 양수 시간
 }
 #endif
 
 // 6. Time Zone / Leap Seconds (윤초)
 #if __cplusplus >= 202002L
+// C++20
 TEST(ChronoTest, LeapSeconds) {
     // 시스템에 등록된 윤초 리스트 확인
     auto& db = compatible_chrono::get_tzdb();
@@ -125,25 +142,50 @@ TEST(ChronoTest, LeapSeconds) {
     }
 }
 #else
+// C++17
 TEST(ChronoTest, LeapSeconds) {
-    GTEST_SKIP() << "Time zone / leap second database requires C++20 tz support";
+    // GTEST_SKIP() << "Time zone / leap second database requires C++20 tz support";
+
+    // 시스템에 등록된 윤초 리스트 확인
+    auto& db = compatible_chrono::get_tzdb();
+    if (!db.leap_seconds.empty()) {
+        auto last_leap = db.leap_seconds.back();
+        EXPECT_GT(last_leap.date(), compatible_chrono::sys_days{ compatible_chrono::year(1970) / 1 / 1 });
+    }
 }
 #endif
 
 // 7. Parsing & Formatting (C++20)
 #if __cplusplus >= 202002L
+// C++20
 TEST(ChronoTest, Formatting) {
     compatible_chrono::sys_days today = compatible_chrono::sys_days{ compatible_chrono::year(2026) / compatible_chrono::May / 1 };
 
     // std::format을 이용한 문자열 변환 테스트
     // (지원되는 컴파일러 환경에서만 작동)
-    std::string s = std::format("{:%Y-%m-%d}", today);
-    EXPECT_EQ(s, "2026-05-01");
+    try {
+        std::string s = CHRONO_FORMAT("%Y-%m-%d", today);
+        EXPECT_EQ(s, "2026-05-01");
+    } catch (const std::format_error& e) {
+        FAIL() << "Format error: " << e.what();
+    } catch (const std::exception& e) {
+        FAIL() << "Exception occurred: " << e.what();
+    } catch (...) {
+        FAIL() << "Unknown exception occurred.";
+	}
+
 }
 #else
+// C++17 
 TEST(ChronoTest, Formatting) {
     // Fallback: skip test on C++17 to avoid dependency on std::format/calendar formatting
-    GTEST_SKIP() << "Formatting with std::format requires C++20";
+
+    compatible_chrono::sys_days today = compatible_chrono::sys_days{ compatible_chrono::year(2026) / compatible_chrono::May / 1 };
+
+    // std::format을 이용한 문자열 변환 테스트
+    // (지원되는 컴파일러 환경에서만 작동)
+    std::string s = CHRONO_FORMAT("%Y-%m-%d", today);
+    EXPECT_EQ(s, "2026-05-01");
 }
 #endif
 

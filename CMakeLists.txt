@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
+# vcpkg toolchain 파일 설정 (환경변수 VCPKG_ROOT이 정의된 경우)
 if(DEFINED ENV{VCPKG_ROOT})
     set(CMAKE_TOOLCHAIN_FILE "$ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake")
     message(STATUS "Using vcpkg toolchain file: ${CMAKE_TOOLCHAIN_FILE}")
@@ -30,28 +31,28 @@ project(compatible_chrono_test)
 
 # C++ 표준 설정 (사용자가 -DCMAKE_CXX_STANDARD=17 또는 20으로 선택)
 if(NOT CMAKE_CXX_STANDARD)
-    set(CMAKE_CXX_STANDARD 17)
+    # set(CMAKE_CXX_STANDARD 17)
+    set(CMAKE_CXX_STANDARD 20)
 endif()
 
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CXX_EXTENSIONS OFF)
+set(CMAKE_CXX_STANDARD_REQUIRED ON) # C++ 표준이 반드시 충족되어야 함을 명시
+set(CXX_EXTENSIONS OFF) # C++ 확장 기능을 비활성화하여 표준 준수 모드로 컴파일하도록 설정 (예: MSVC의 경우 /Za 옵션과 유사)
 
 # gtest
-
 if(WIN32)
     message("Windows")
     find_package(gtest CONFIG REQUIRED) # 윈도우에서 gt가 소문자인 경우 있음
 elseif(APPLE)
     message("macOS")
-    # TODO: ... 
+    # TODO: 추후 설정
 elseif(UNIX)
     message("Linux or Unix")
     find_package(GTest CONFIG REQUIRED) # 리눅스에서 GT가 대문자인 경우 있음 
 endif()
 
-# 실행 파일
-file(GLOB SOURCES "*.cpp")
-add_executable(test_compatible_chrono ${SOURCES})
+
+file(GLOB SOURCES "*.cpp") # 현재 디렉토리의 모든 .cpp 파일을 SOURCES 변수에 저장
+add_executable(test_compatible_chrono ${SOURCES}) # 실행 파일
 
  
 # include 디렉토리 설정
@@ -75,21 +76,17 @@ elseif(CMAKE_CXX_STANDARD GREATER_EQUAL 20)
     message(STATUS "Using C++20 - std::chrono")
 
     if(MSVC)
-        # target_compile_features(test_compatible_chrono PRIVATE cxx_std_20)
+        # Visual Studio 2019 이상에서 C++20 chrono의 timezone 기능을 사용하려면 /Zc:__cplusplus 옵션이 필요
+        # __cplusplus는 C++ 표준 버전을 나타내는 매크로로, C++20에서는 202002L 이상의 값을 가집니다. 이 옵션이 없으면 MSVC는 __cplusplus를 199711L로 정의하여 C++17로 인식하게 됩니다.
         target_compile_options(test_compatible_chrono  PRIVATE /Zc:__cplusplus)
     endif()
     
-    # Even with C++20, the tz database/implementation from the date library is required for timezone APIs.
-    # Find and link the date package so the tz implementation is available.
     find_package(date CONFIG REQUIRED)
 
     target_link_libraries(test_compatible_chrono PRIVATE
         date::date
         date::date-tz
     )
-
-    # target_compile_features(test_compatible_chrono PRIVATE cxx_std_20)
-    # target_link_libraries(test_compatible_chrono PRIVATE stdc++exp)
 
 endif()
 
@@ -105,6 +102,7 @@ add_test(NAME chrono_test COMMAND test_compatible_chrono)
 # 설정: 프로젝트 루트의 tzdata 폴더를 사용
 set(TZDATA_DIR "${CMAKE_CURRENT_SOURCE_DIR}/tzdata")
 
+# tzdata 디렉토리가 존재하는 경우, 환경변수로 전달하여 테스트에서 사용할 수 있도록 설정
 if(EXISTS "${TZDATA_DIR}")
     message(STATUS "Using tzdata from: ${TZDATA_DIR}")
 
@@ -151,14 +149,12 @@ target_compile_definitions(test_compatible_chrono PRIVATE
     "PROJECT_SOURCE_DIR_TZDATA=\"${CMAKE_CURRENT_SOURCE_DIR}/tzdata\""
 )
 
-# Add option to enable calling date::set_install when present
+# 테스트에서 date::set_install()을 호출하여 tzdata를 사용할지 여부를 설정하는 옵션
 option(USE_DATE_SET_INSTALL "Call date::set_install() at runtime when tzdata provided" OFF)
 
+# 테스트 코드에서 USE_DATE_SET_INSTALL이 정의된 경우, date::set_install()을 호출하여 tzdata를 사용할 수 있도록 설정
 if(USE_DATE_SET_INSTALL)
     target_compile_definitions(test_compatible_chrono PRIVATE USE_DATE_SET_INSTALL)
 endif()
-
-
-
 
 
