@@ -53,6 +53,7 @@ endif()
 file(GLOB SOURCES "*.cpp")
 add_executable(test_compatible_chrono ${SOURCES})
 
+ 
 # include 디렉토리 설정
 target_include_directories(test_compatible_chrono PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
@@ -72,6 +73,11 @@ if(CMAKE_CXX_STANDARD EQUAL 17)
 
 elseif(CMAKE_CXX_STANDARD GREATER_EQUAL 20)
     message(STATUS "Using C++20 - std::chrono")
+
+    if(MSVC)
+        # target_compile_features(test_compatible_chrono PRIVATE cxx_std_20)
+        target_compile_options(test_compatible_chrono  PRIVATE /Zc:__cplusplus)
+    endif()
     
     # Even with C++20, the tz database/implementation from the date library is required for timezone APIs.
     # Find and link the date package so the tz implementation is available.
@@ -151,6 +157,8 @@ option(USE_DATE_SET_INSTALL "Call date::set_install() at runtime when tzdata pro
 if(USE_DATE_SET_INSTALL)
     target_compile_definitions(test_compatible_chrono PRIVATE USE_DATE_SET_INSTALL)
 endif()
+
+
 
 
 

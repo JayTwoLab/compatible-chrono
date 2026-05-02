@@ -68,6 +68,7 @@ TEST(ChronoTest, SpecializedClocks) {
 
 // 4. Calendar - 세부 구성 요소 (Year, Month, Day, Weekday, Monthday 등)
 #if __cplusplus >= 202002L
+// C++20 
 TEST(ChronoTest, CalendarComponents) {
     compatible_chrono::year y{ 2026 };
     compatible_chrono::month m{ compatible_chrono::May };
@@ -85,8 +86,14 @@ TEST(ChronoTest, CalendarComponents) {
     EXPECT_EQ(ymdl.day(), compatible_chrono::day(31)); // 5월의 마지막 날은 31일
 }
 #else
+// C++17 
 TEST(ChronoTest, CalendarComponents) {
     GTEST_SKIP() << "Calendar components require C++20 chrono/calendar support";
+
+
+
+
+
 }
 #endif
 

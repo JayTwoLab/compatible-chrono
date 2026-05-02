@@ -116,6 +116,13 @@ static bool try_set_from_candidate(const std::filesystem::path& start) {
 }
 
 int main(int argc, char** argv) {
+
+#if __cplusplus >= 202002L
+	std::cout << "Running with C++20 chrono support" << std::endl;
+#else 
+	std::cout << "Running with C++17 chrono support" << std::endl;
+#endif
+
     // 우선 이미 설정된 TZDIR/TZDATA가 있으면 그대로 테스트 실행
     if (std::getenv("TZDIR") || std::getenv("TZDATA")) {
         ::testing::InitGoogleTest(&argc, argv);
