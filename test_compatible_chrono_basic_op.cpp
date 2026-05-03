@@ -182,6 +182,7 @@ TEST(ChronoCompatibility, LocalDaysArithmetic_NextDay) {
 
 // 타임존 정보가 사용 가능한 경우: sys_days <-> local_days 라운드트립 확인 (불가하면 테스트를 건너뜀)
 #if __cplusplus < 202002L
+// C++17에서는 Howard Hinnant의 date 라이브러리를 사용할 때 date::current_zone()이 타임존 데이터베이스가 사용 가능한 경우에만 제공됩니다. 따라서 타임존 데이터베이스가 없는 환경에서는 이 테스트를 건너뛰도록 합니다.
 TEST(ChronoCompatibility, LocalDaysTimezoneRoundtrip_WhenTimezoneAvailable) {
     try {
         // date::current_zone() is available when using Howard Hinnant's date (C++17 mode)
@@ -203,9 +204,11 @@ TEST(ChronoCompatibility, LocalDaysTimezoneRoundtrip_WhenTimezoneAvailable) {
     }
 }
 #else
-TEST(ChronoCompatibility, LocalDaysTimezoneRoundtrip_WhenTimezoneAvailable) {
-    GTEST_SKIP() << "Timezone roundtrip test skipped in C++20/std::chrono build on this platform.";
-}
+//TEST(ChronoCompatibility, LocalDaysTimezoneRoundtrip_WhenTimezoneAvailable) {
+//	// C++20에서는 std::chrono::current_zone()이 항상 제공되지만, 타임존 데이터베이스가 없는 플랫폼에서는 여전히 예외가 발생할 수 있습니다. 
+// 따라서 C++20에서도 타임존 데이터베이스가 없는 경우를 대비하여 테스트를 건너뛰도록 합니다.
+//    GTEST_SKIP() << "Timezone roundtrip test skipped in C++20/std::chrono build on this platform.";
+// }
 #endif
 
 
