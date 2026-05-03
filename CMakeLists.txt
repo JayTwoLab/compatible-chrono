@@ -31,8 +31,8 @@ project(compatible_chrono_test)
 
 # C++ 표준 설정 (사용자가 -DCMAKE_CXX_STANDARD=17 또는 20으로 선택)
 if(NOT CMAKE_CXX_STANDARD)
-    set(CMAKE_CXX_STANDARD 17)
-    # set(CMAKE_CXX_STANDARD 20)
+    set(CMAKE_CXX_STANDARD 17) 
+    # set(CMAKE_CXX_STANDARD 20)   
 endif()
 
 set(CMAKE_CXX_STANDARD_REQUIRED ON) # C++ 표준이 반드시 충족되어야 함을 명시
