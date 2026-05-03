@@ -27,47 +27,83 @@
     // namespace compatible_chrono = date; // Alias for date library namespace
 
     namespace compatible_chrono {
+ 
+		////////////////////////////////////////////
         // std::chrono standard durations / utilities
-        using std::chrono::seconds;
-        using std::chrono::minutes;
-        using std::chrono::hours;
-        using std::chrono::milliseconds;
-        using std::chrono::system_clock;
-        using std::chrono::steady_clock;
+		// Not provided by date::, import from std::chrono
+
+		// date:: does not provide hours, minutes, seconds, milliseconds, so import from std::chrono
+		using std::chrono::hours; // duration representing hours
+		using std::chrono::minutes; // duration representing minutes
+		using std::chrono::seconds; // duration representing seconds
+		using std::chrono::milliseconds; // duration representing milliseconds
+		using std::chrono::microseconds; // duration representing microseconds
+		using std::chrono::nanoseconds; // duration representing nanoseconds
+
+		// Additional common std::chrono types/utilities (previously missing)
+		using std::chrono::duration; // duration template type
+		using std::chrono::duration_cast; // utility to convert durations
+		using std::chrono::time_point_cast; // utility to cast time_points
+		using std::chrono::high_resolution_clock; // high-resolution clock
+
+		// date:: does not provide system_clock and steady_clock, so import from std::chrono
+		using std::chrono::system_clock; // system clock (real-world time)
+		using std::chrono::steady_clock; // steady clock (monotonic)
+
+		// date:: does not provide time_point, so import from std::chrono
         using std::chrono::time_point;
-        using std::chrono::floor; // bring chrono::floor into namespace for rounding
-        using std::chrono::ceil;
 
+		// Import floor/ceil from std::chrono for rounding durations (e.g., floor<days>(tp))
+		using std::chrono::floor; // round down duration/time_point to specified unit
+		using std::chrono::ceil; // round up duration/time_point to specified unit
+
+		////////////////////////////////////////////
         // date library durations/types/extensions
-        using date::days;
-        using date::months;
-        using date::years;
-        using date::weekday;
-        using date::year_month_day;
-        using date::year_month_day_last;
-        using date::month_day_last;
-        using date::month_day;
-        using date::sys_days;
-        using date::hh_mm_ss;
-        using date::utc_clock;
-        using date::get_tzdb;
-        using date::local_days; // if used
-        using date::parse;
-        using date::format;
+        
+		using date::years; // duration representing years
+		using date::months; // duration representing months
+		using date::days; // duration representing days
 
-        using date::year;
-        using date::month;
-        using date::day;
-        using date::May;
-        using date::June;
+		using date::weekday; // weekday (Sunday=0, Monday=1, ..., Saturday=6)
+		using date::year_month_day; // year/month/day (e.g., 2024-03-15)
+		using date::year_month_day_last; // year/month/last_day (e.g., last day of Feb)
+		using date::month_day_last; // month/last_day
+		using date::month_day; // month/day (e.g., March 15)
+
+		using date::sys_days; // time_point expressed in days since epoch (system time)
+		using date::hh_mm_ss; // hours:minutes:seconds helper
+		using date::utc_clock; // UTC clock
+		using date::get_tzdb; // access time zone database (e.g., get_tzdb().zones)
+		using date::local_days; // time_point in local time expressed in days
+		using date::parse; // parse string to date/time (e.g., parse("%Y-%m-%d", "2024-03-15", ymd))
+		using date::format; // format date/time to string (e.g., format("%Y-%m-%d", ymd))
+
+		using date::year; // year type (e.g., 2024)
+		using date::month; // month type (e.g., March)
+		using date::day; // day type (e.g., 15)
+
+		using date::January; // 1st month
+		using date::February; // 2nd month
+		using date::March; // 3rd month
+		using date::April; // 4th month
+		using date::May; // 5th month
+		using date::June; // 6th month
+		using date::July; // 7th month
+		using date::August; // 8th month
+		using date::September; // 9th month
+		using date::October; // 10th month
+		using date::November; // 11th month
+		using date::December; // 12th month
 
         // Provide a fallback is_clock trait for C++17 (C++20 has std::chrono::is_clock)
         template <typename T, typename = void>
         struct is_clock : std::false_type {};
 
+		// A type is considered a clock if it has a static now() function and a nested time_point type
         template <typename T>
         struct is_clock<T, std::void_t<decltype(T::now()), typename T::time_point>> : std::true_type {};
 
+		// Helper variable template for is_clock trait
         template <typename T>
         inline constexpr bool is_clock_v = is_clock<T>::value;
     }
