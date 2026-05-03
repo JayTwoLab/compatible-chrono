@@ -70,9 +70,9 @@ TEST(ChronoTest, SpecializedClocks) {
 #if __cplusplus >= 202002L
 // C++20 
 TEST(ChronoTest, CalendarComponents) {
-    compatible_chrono::year y{ 2026 };
-    compatible_chrono::month m{ compatible_chrono::May };
-    compatible_chrono::day d{ 1 };
+	compatible_chrono::year y{ 2026 }; // 2026년
+	compatible_chrono::month m{ compatible_chrono::May }; // 5월
+	compatible_chrono::day d{ 1 }; // 1일
 
     // 연도 관련 함수 
     EXPECT_FALSE(y.is_leap()); // 2026년은 윤년이 아님
@@ -88,16 +88,21 @@ TEST(ChronoTest, CalendarComponents) {
 #else
 // C++17 
 TEST(ChronoTest, CalendarComponents) {
-    compatible_chrono::year y{ 2026 };
-    compatible_chrono::month m{ compatible_chrono::May };
-    compatible_chrono::day d{ 1 };
+	compatible_chrono::year y{ 2026 }; // 2026년
+	compatible_chrono::month m{ compatible_chrono::May }; // 5월
+	compatible_chrono::day d{ 1 }; // 1일
 
     // 연도 관련 함수 
     EXPECT_FALSE(y.is_leap()); // 2026년은 윤년이 아님
 
     // 월/일 연산
-    auto next_month = m + compatible_chrono::months(1);
+    auto next_month = m + compatible_chrono::months(1); // 1달 뒤 
     EXPECT_EQ(next_month, compatible_chrono::June); // 5월 다음은 6월
+
+	// 12월 다음 달은 1월로 돌아가는지 테스트
+	auto dec = compatible_chrono::December; // 12월
+	auto next_dec = dec + compatible_chrono::months(1); // 1달 뒤
+	EXPECT_EQ(next_dec, compatible_chrono::January); // 12월 다음은 1월
 
     // Last day of month (해당 월의 마지막 날)
     compatible_chrono::year_month_day_last ymdl{ y, compatible_chrono::month_day_last{m} };
@@ -144,8 +149,6 @@ TEST(ChronoTest, LeapSeconds) {
 #else
 // C++17
 TEST(ChronoTest, LeapSeconds) {
-    // GTEST_SKIP() << "Time zone / leap second database requires C++20 tz support";
-
     // 시스템에 등록된 윤초 리스트 확인
     auto& db = compatible_chrono::get_tzdb();
     if (!db.leap_seconds.empty()) {
@@ -159,7 +162,11 @@ TEST(ChronoTest, LeapSeconds) {
 #if __cplusplus >= 202002L
 // C++20
 TEST(ChronoTest, Formatting) {
-    compatible_chrono::sys_days today = compatible_chrono::sys_days{ compatible_chrono::year(2026) / compatible_chrono::May / 1 };
+    compatible_chrono::sys_days today 
+        = compatible_chrono::sys_days{ 
+                compatible_chrono::year(2026) / 
+                compatible_chrono::May / 
+        1 };
 
     // std::format을 이용한 문자열 변환 테스트
     // (지원되는 컴파일러 환경에서만 작동)
@@ -178,9 +185,11 @@ TEST(ChronoTest, Formatting) {
 #else
 // C++17 
 TEST(ChronoTest, Formatting) {
-    // Fallback: skip test on C++17 to avoid dependency on std::format/calendar formatting
-
-    compatible_chrono::sys_days today = compatible_chrono::sys_days{ compatible_chrono::year(2026) / compatible_chrono::May / 1 };
+    compatible_chrono::sys_days today 
+        = compatible_chrono::sys_days{ 
+            compatible_chrono::year(2026) / 
+            compatible_chrono::May / 
+        1 };
 
     // std::format을 이용한 문자열 변환 테스트
     // (지원되는 컴파일러 환경에서만 작동)

@@ -65,16 +65,19 @@
 		using date::days; // duration representing days
 
 		using date::weekday; // weekday (Sunday=0, Monday=1, ..., Saturday=6)
+
 		using date::year_month_day; // year/month/day (e.g., 2024-03-15)
 		using date::year_month_day_last; // year/month/last_day (e.g., last day of Feb)
 		using date::month_day_last; // month/last_day
 		using date::month_day; // month/day (e.g., March 15)
+		using date::hh_mm_ss; // hours:minutes:seconds helper
 
 		using date::sys_days; // time_point expressed in days since epoch (system time)
-		using date::hh_mm_ss; // hours:minutes:seconds helper
-		using date::utc_clock; // UTC clock
-		using date::get_tzdb; // access time zone database (e.g., get_tzdb().zones)
 		using date::local_days; // time_point in local time expressed in days
+
+		using date::utc_clock; // UTC clock
+
+		using date::get_tzdb; // access time zone database (e.g., get_tzdb().zones)
 		using date::parse; // parse string to date/time (e.g., parse("%Y-%m-%d", "2024-03-15", ymd))
 		using date::format; // format date/time to string (e.g., format("%Y-%m-%d", ymd))
 

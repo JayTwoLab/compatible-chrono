@@ -10,19 +10,22 @@
 // 헬퍼: 여러 테스트에서 공통으로 사용하는 "오늘"과 일 단위로 내림(floor) 처리한 값
 static auto get_today_sys_days()
 {
-    auto now = std::chrono::system_clock::now();
-    return compatible_chrono::floor<compatible_chrono::days>(now);
+	auto now = std::chrono::system_clock::now(); // 현재 시스템 시간을 가져옴
+	return compatible_chrono::floor<compatible_chrono::days>(now); // 현재 시간을 일 단위(days)로 내림 처리(floor)하여 sys_days 타입으로 반환 (compatible_chrono::floor는 date::floor와 유사한 기능을 제공하며, compatible_chrono::days는 date::days와 유사한 기능을 제공하는 타입)
 }  
   
 // 날짜 동등성 및 기본 생성 테스트
 TEST(ChronoCompatibility, DateEqualityAndConstruction) {
     auto sd = get_today_sys_days();
-    auto ymd = compatible_chrono::year_month_day{sd};
+	auto ymd = compatible_chrono::year_month_day{ sd }; // sys_days에서 year_month_day(년/월/일)로 변환하여 날짜 구성
 
     EXPECT_EQ(ymd, compatible_chrono::year_month_day{sd});
 
     // 직접 구성 후 다시 변환(roundtrip) 확인
-    compatible_chrono::year_month_day ymd2{compatible_chrono::year{2026}, compatible_chrono::month{4}, compatible_chrono::day{27}};
+    compatible_chrono::year_month_day ymd2{
+        compatible_chrono::year{2026}, 
+        compatible_chrono::month{4}, 
+        compatible_chrono::day{27} };
     auto sys_days2 = compatible_chrono::sys_days{ymd2};
     EXPECT_EQ(ymd2, compatible_chrono::year_month_day{sys_days2});
     EXPECT_EQ(CHRONO_FORMAT("%Y-%m-%d", sys_days2), std::string("2026-04-27"));
