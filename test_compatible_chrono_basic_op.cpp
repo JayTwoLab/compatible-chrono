@@ -6,33 +6,33 @@
 #include <string>
 #include <exception>
 
-// 헬퍼: 여러 테스트에서 공통으로 사용하는 "오늘"과 일 단위로 내림(floor) 처리한 값
+// Helper: "today" used across tests and its value floored to days
 static auto get_today_sys_days()
 {
-	auto now = compatible_chrono::system_clock::now(); // 현재 시스템 시간(UTC)을 가져옴 
+	auto now = compatible_chrono::system_clock::now(); // Get current system time (UTC)
 
-	return compatible_chrono::floor<compatible_chrono::days>(now); // 현재 시간을 일 단위(days)로 내림 처리(floor)하여 sys_days(시스템 시간 일 단위) 타입으로 반환 (compatible_chrono::floor는 date::floor와 유사한 기능을 제공하며, compatible_chrono::days는 date::days와 유사한 기능을 제공하는 타입)
+	return compatible_chrono::floor<compatible_chrono::days>(now); // Floor the current time to days and return as sys_days (compatible_chrono::floor is similar to date::floor, compatible_chrono::days is similar to date::days)
 }  
   
-// 날짜 동등성 및 기본 생성 테스트
+// Date equality and basic construction tests
 TEST(ChronoCompatibility, DateEqualityAndConstruction) {
     auto sd = get_today_sys_days();
-	auto ymd = compatible_chrono::year_month_day{ sd }; // sys_days에서 year_month_day(년/월/일)로 변환하여 날짜 구성
+	auto ymd = compatible_chrono::year_month_day{ sd }; // Convert sys_days to year_month_day
     EXPECT_EQ(ymd, compatible_chrono::year_month_day{sd});
 
-    // 직접 구성 후 다시 변환(roundtrip) 확인
+    // Construct directly and verify roundtrip
     compatible_chrono::year_month_day ymd2{
         compatible_chrono::year{2026}, 
         compatible_chrono::month{4}, 
         compatible_chrono::day{27} };
 
-	auto sys_days2 = compatible_chrono::sys_days{ ymd2 }; // year_month_day에서 sys_days로 변환하여 날짜 구성 (compatible_chrono::sys_days는 date::sys_days와 유사한 기능을 제공하는 타입)
+	auto sys_days2 = compatible_chrono::sys_days{ ymd2 }; // Convert year_month_day back to sys_days
 
     EXPECT_EQ(ymd2, compatible_chrono::year_month_day{sys_days2});
     EXPECT_EQ(CHRONO_FORMAT("%Y-%m-%d", sys_days2), std::string("2026-04-27"));
 }
 
-// 포맷팅 테스트
+// Formatting test
 TEST(ChronoCompatibility, Formatting) {
     auto now = compatible_chrono::system_clock::now();
     auto sd = compatible_chrono::floor<compatible_chrono::days>(now);
@@ -42,27 +42,26 @@ TEST(ChronoCompatibility, Formatting) {
     EXPECT_EQ(s, s2);
 }
 
-// 날짜 산술 연산 테스트 (다음 주 계산)
+// Date arithmetic test (next week calculation)
 TEST(ChronoCompatibility, DateArithmetic_NextWeek) {
     auto sd = get_today_sys_days();
 
-	auto next_week = sd + compatible_chrono::days{ 7 }; // 7일 후 계산
-	auto ymd_next = compatible_chrono::year_month_day{ next_week }; // sys_days에서 year_month_day로 변환하여 다음 주 날짜 구성
+	auto next_week = sd + compatible_chrono::days{ 7 }; // Compute 7 days later
+	auto ymd_next = compatible_chrono::year_month_day{ next_week }; // Convert sys_days to year_month_day for next week
 
-	auto expected_ymd_next = compatible_chrono::year_month_day{ next_week }; // 다음 주 날짜를 year_month_day로 변환하여 예상 결과 구성 (compatible_chrono::year_month_day는 date::year_month_day와 유사한 기능을 제공하는 타입)
+	auto expected_ymd_next = compatible_chrono::year_month_day{ next_week }; // Expected next week as year_month_day
 
     EXPECT_EQ(ymd_next, expected_ymd_next);
     EXPECT_EQ(CHRONO_FORMAT("%Y-%m-%d", next_week), CHRONO_FORMAT("%Y-%m-%d", sd + compatible_chrono::days{7}));
 }
 
-// 문자열로부터의 파싱 테스트
+// Parsing from string test
 TEST(ChronoCompatibility, ParsingFromString) {
     std::istringstream in("2026-05-05");
-	compatible_chrono::sys_days parsed_date; // 시스템 시간(UTC) 기준의 날자(Days) 타입의 변수 
+	compatible_chrono::sys_days parsed_date; // sys_days variable to hold parsed date
 
-	in >> compatible_chrono::parse("%Y-%m-%d", parsed_date); // 문자열 "2026-05-05"을 "%Y-%m-%d" 형식으로 파싱하여 sys_days 타입의 parsed_date에 저장 (compatible_chrono::parse는 date::parse와 유사한 기능을 제공하는 함수)
-
-	auto ymd_parsed = compatible_chrono::year_month_day{ parsed_date }; // 파싱된 sys_days를 year_month_day로 변환하여 ymd_parsed에 저장 (compatible_chrono::year_month_day는 date::year_month_day와 유사한 기능을 제공하는 타입)
+	in >> compatible_chrono::parse("%Y-%m-%d", parsed_date); // Parse "2026-05-05" into parsed_date
+	auto ymd_parsed = compatible_chrono::year_month_day{ parsed_date }; // Convert parsed sys_days to year_month_day
     compatible_chrono::year_month_day expected_parsed{
         compatible_chrono::year{2026}, 
         compatible_chrono::month{5}, 
@@ -72,7 +71,7 @@ TEST(ChronoCompatibility, ParsingFromString) {
     EXPECT_EQ(CHRONO_FORMAT("%Y-%m-%d", parsed_date), std::string("2026-05-05"));
 }
 
-// 월의 마지막 날 처리 테스트
+// Last day of month handling test
 TEST(ChronoCompatibility, LastDayOfMonth) {
     compatible_chrono::year_month_day_last last_day{compatible_chrono::year{2026}, compatible_chrono::month_day_last{compatible_chrono::month{4}}};
     auto sys_days_last = compatible_chrono::sys_days{last_day};
@@ -82,7 +81,7 @@ TEST(ChronoCompatibility, LastDayOfMonth) {
     EXPECT_EQ(CHRONO_FORMAT("%Y-%m-%d", sys_days_last), std::string("2026-04-30"));
 }
 
-// 요일 범위 검사 (0..6)
+// Weekday range check (0..6)
 TEST(ChronoCompatibility, WeekdayRange) {
     auto sd = get_today_sys_days();
     auto weekday = compatible_chrono::weekday{sd};
@@ -90,7 +89,7 @@ TEST(ChronoCompatibility, WeekdayRange) {
     EXPECT_LE(weekday.c_encoding(), 6);
 }
 
-// 윤년 처리 테스트 (2024-02-29)
+// Leap year handling test (2024-02-29)
 TEST(ChronoCompatibility, LeapYearHandling) {
     compatible_chrono::year_month_day leap_day{compatible_chrono::year{2024}, compatible_chrono::month{2}, compatible_chrono::day{29}};
     auto sys_leap = compatible_chrono::sys_days{leap_day};
@@ -98,7 +97,7 @@ TEST(ChronoCompatibility, LeapYearHandling) {
     EXPECT_EQ(CHRONO_FORMAT("%Y-%m-%d", sys_leap), std::string("2024-02-29"));
 }
 
-// 월말 처리 테스트 (1월 31일)
+// End-of-month handling test (January 31)
 TEST(ChronoCompatibility, EndOfMonthHandling) {
     compatible_chrono::year_month_day end_of_month{compatible_chrono::year{2026}, compatible_chrono::month{1}, compatible_chrono::day{31}};
     auto sys_end = compatible_chrono::sys_days{end_of_month};
@@ -106,7 +105,7 @@ TEST(ChronoCompatibility, EndOfMonthHandling) {
     EXPECT_EQ(CHRONO_FORMAT("%Y-%m-%d", sys_end), std::string("2026-01-31"));
 }
 
-// 음수 기간 처리 테스트 (과거 날짜 계산)
+// Negative duration handling test (past date calculation)
 TEST(ChronoCompatibility, NegativeDurationHandling) {
     auto sd = get_today_sys_days();
     auto past_date = sd - compatible_chrono::days{365};
@@ -116,7 +115,7 @@ TEST(ChronoCompatibility, NegativeDurationHandling) {
     EXPECT_EQ(CHRONO_FORMAT("%Y-%m-%d", past_date), CHRONO_FORMAT("%Y-%m-%d", sd - compatible_chrono::days{365}));
 }
 
-// 큰 기간 처리 테스트 (100년 후)
+// Large duration handling test (100 years later)
 TEST(ChronoCompatibility, LargeDurationHandling) {
     auto sd = get_today_sys_days();
     auto future_date = sd + compatible_chrono::days{365 * 100};
@@ -125,7 +124,7 @@ TEST(ChronoCompatibility, LargeDurationHandling) {
     EXPECT_EQ(ymd_future, expected_future);
 }
 
-// 월 오버플로우 처리 테스트 (13월 -> 다음 해 1월로 전환)
+// Month overflow handling test (month 13 -> next year's January)
 TEST(ChronoCompatibility, MonthOverflowHandling) {
     compatible_chrono::year_month_day month_overflow{compatible_chrono::year{2026}, compatible_chrono::month{13}, compatible_chrono::day{1}};
     auto sys_month_overflow = compatible_chrono::sys_days{month_overflow};
@@ -134,7 +133,7 @@ TEST(ChronoCompatibility, MonthOverflowHandling) {
     EXPECT_EQ(ymd_month_overflow, expected_month_overflow);
 }
 
-// 연도 경계 처리 테스트 (최대값 근처의 연도 처리)
+// Year boundary handling test (near-maximum year handling)
 TEST(ChronoCompatibility, YearOverflowHandling) {
     compatible_chrono::year_month_day year_overflow{compatible_chrono::year{32767}, compatible_chrono::month{12}, compatible_chrono::day{31}};
     auto sys_year_overflow = compatible_chrono::sys_days{year_overflow};
@@ -143,34 +142,34 @@ TEST(ChronoCompatibility, YearOverflowHandling) {
     EXPECT_EQ(ymd_year_overflow, expected_year_overflow);
 }
 
-// --- local_days 관련 테스트들 ---
+// --- Tests related to local_days ---
 
-// local_days 기본 생성 및 year_month_day와의 roundtrip 테스트
+// local_days default construction and roundtrip with year_month_day
 TEST(ChronoCompatibility, LocalDaysConstructionAndRoundtrip) {
     compatible_chrono::year_month_day ymd{
         compatible_chrono::year{2026}, 
         compatible_chrono::month{5}, 
         compatible_chrono::day{3} };
 
-	compatible_chrono::local_days ld{ ymd }; // year_month_day에서 local_days로 변환
+	compatible_chrono::local_days ld{ ymd }; // Convert year_month_day to local_days
 
-	auto ymd_from_local = compatible_chrono::year_month_day{ ld }; // local_days에서 year_month_day로 다시 변환하여 원래 날짜와 일치하는지 확인
+	auto ymd_from_local = compatible_chrono::year_month_day{ ld }; // Convert local_days back to year_month_day and verify equality
 
     EXPECT_EQ(ymd_from_local, ymd);
 }
 
-// local_days에서의 일 단위 산술 연산 테스트
+// Day arithmetic on local_days (next day)
 TEST(ChronoCompatibility, LocalDaysArithmetic_NextDay) {
     compatible_chrono::year_month_day ymd{
         compatible_chrono::year{2026}, 
         compatible_chrono::month{12}, 
         compatible_chrono::day{31} };
 
-	compatible_chrono::local_days ld{ ymd }; // year_month_day에서 local_days로 변환
+	compatible_chrono::local_days ld{ ymd }; // Convert year_month_day to local_days
 
-	auto next_day = ld + compatible_chrono::days{ 1 }; // local_days에서 1일 더하기 (다음 날 계산)
+	auto next_day = ld + compatible_chrono::days{ 1 }; // Add 1 day to local_days
 
-	auto ymd_next = compatible_chrono::year_month_day{ next_day }; // 다음 날을 year_month_day로 변환하여 2027-01-01이 되는지 확인
+	auto ymd_next = compatible_chrono::year_month_day{ next_day }; // Convert next day to year_month_day and expect 2027-01-01
 
     compatible_chrono::year_month_day expected_next{
         compatible_chrono::year{2027}, 
@@ -180,9 +179,10 @@ TEST(ChronoCompatibility, LocalDaysArithmetic_NextDay) {
     EXPECT_EQ(ymd_next, expected_next);
 }
 
-// 타임존 정보가 사용 가능한 경우: sys_days <-> local_days 라운드트립 확인 (불가하면 테스트를 건너뜀)
+// When time zone information is available: verify sys_days <-> local_days roundtrip (skip test if unavailable)
 #if __cplusplus < 202002L
-// C++17에서는 Howard Hinnant의 date 라이브러리를 사용할 때 date::current_zone()이 타임존 데이터베이스가 사용 가능한 경우에만 제공됩니다. 따라서 타임존 데이터베이스가 없는 환경에서는 이 테스트를 건너뛰도록 합니다.
+// In C++17, using Howard Hinnant's date library, date::current_zone() is available only when the tz database is present.
+// Skip this test in environments without a timezone database.
 TEST(ChronoCompatibility, LocalDaysTimezoneRoundtrip_WhenTimezoneAvailable) {
     try {
         // date::current_zone() is available when using Howard Hinnant's date (C++17 mode)
@@ -205,8 +205,8 @@ TEST(ChronoCompatibility, LocalDaysTimezoneRoundtrip_WhenTimezoneAvailable) {
 }
 #else
 //TEST(ChronoCompatibility, LocalDaysTimezoneRoundtrip_WhenTimezoneAvailable) {
-//	// C++20에서는 std::chrono::current_zone()이 항상 제공되지만, 타임존 데이터베이스가 없는 플랫폼에서는 여전히 예외가 발생할 수 있습니다. 
-// 따라서 C++20에서도 타임존 데이터베이스가 없는 경우를 대비하여 테스트를 건너뛰도록 합니다.
+//	// In C++20 std::chrono::current_zone() is always provided, but platforms without a tzdb may still throw.
+// Therefore, skip the timezone roundtrip test in C++20 when the tzdb is not available.
 //    GTEST_SKIP() << "Timezone roundtrip test skipped in C++20/std::chrono build on this platform.";
 // }
 #endif

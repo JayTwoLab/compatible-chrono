@@ -1,4 +1,4 @@
-
+﻿  
 #include "compatible_chrono.hpp"
 
 #include <gtest/gtest.h>
@@ -12,35 +12,36 @@
     #include <format>
 #endif 
      
-// 1. Ratio (시간 단위의 기반이 되는 비율) 테스트
+// 1. Ratio (base ratio for time units) tests
 TEST(ChronoTest, RatioCheck) {
-    // std::micro (1/1,000,000) 등 기본 비율 확인
+    // Verify fundamental ratios such as std::micro (1/1,000,000)
     EXPECT_EQ(std::micro::num, 1);
     EXPECT_EQ(std::micro::den, 1000000);
 }
-
-// 2. Duration Trait 및 특수 연산
+ 
+// 2. Duration traits and special operations
 TEST(ChronoTest, DurationAdvanced) {
     using micro_seconds = std::chrono::duration<long long, std::micro>; // c++11 style duration with microsecond precision
     micro_seconds ms(1000000);
 
-    // duration::min, max, zero 테스트 — C++17 호환 방식으로 검사
+    // Test duration::min, max, zero — checked in C++17-compatible way
     EXPECT_EQ(micro_seconds(0).count(), 0);
     EXPECT_LT(micro_seconds(std::numeric_limits<long long>::min()).count(), 0); 
 
     // abs (manual, C++17-safe)
     std::chrono::seconds neg_sec(-5); 
-    auto abs_sec = (neg_sec < std::chrono::seconds::zero()) ? -neg_sec : neg_sec; // C++17에서는 std::chrono::abs가 없으므로 수동으로 절댓값 계산
+    // In C++17 there is no std::chrono::abs, so compute absolute value manually
+    auto abs_sec = (neg_sec < std::chrono::seconds::zero()) ? -neg_sec : neg_sec;
     EXPECT_EQ(abs_sec.count(), 5);
 }
 
-// 3. 다양한 Clock 타입 테스트 (C++20 포함)
+// 3. Tests for various Clock types (including C++20)
 #if __cplusplus >= 202002L
 // C++20 
 TEST(ChronoTest, SpecializedClocks) {
-    // gps_clock: GPS 시간 (1980년 기준)
-    // tai_clock: 국제 원자시 (윤초 포함)
-    // utc_clock: 협정 세계시
+    // gps_clock: GPS time (epoch 1980)
+    // tai_clock: International Atomic Time (includes leap seconds)
+    // utc_clock: Coordinated Universal Time (UTC)
 
     auto utc_now = compatible_chrono::utc_clock::now();
     auto sys_now = compatible_chrono::utc_clock::to_sys(utc_now);
@@ -51,10 +52,14 @@ TEST(ChronoTest, SpecializedClocks) {
 // C++17 
 TEST(ChronoTest, SpecializedClocks) {
     try {
-        auto utc_now = compatible_chrono::utc_clock::now(); // date::utc_clock를 이용하여 c++20의 std::chrono::utc_clock과 유사한 기능을 제공하는 date::utc_clock에서 현재 시간을 가져옴
-        auto sys_now = compatible_chrono::utc_clock::to_sys(utc_now); // date::utc_clock의 시간을 시스템 시간으로 변환하여 c++20의 std::chrono::system_clock과 유사한 기능을 제공하는 date::sys_clock으로 변환
+        // Use date::utc_clock to obtain current time, providing functionality similar to C++20 std::chrono::utc_clock
+        auto utc_now = compatible_chrono::utc_clock::now();
+        // Convert date::utc_clock time to system time (date::sys_clock), similar to C++20 std::chrono::system_clock
+        auto sys_now = compatible_chrono::utc_clock::to_sys(utc_now);
 
-        auto count = sys_now.time_since_epoch().count(); // 시스템 시간으로 변환된 시간에서 epoch 이후의 시간을 count로 가져옴 (c++17에서는 std::chrono::time_point의 time_since_epoch()가 duration을 반환하므로, duration의 count()를 이용하여 정수형으로 변환)
+        // Retrieve the count of time_since_epoch() from the converted system time
+        // (in C++17, time_since_epoch() returns a duration, so use duration::count() to get an integral value)
+        auto count = sys_now.time_since_epoch().count();
         EXPECT_GT(count, 0);
 
     } catch( const std::exception& e) {
@@ -66,47 +71,47 @@ TEST(ChronoTest, SpecializedClocks) {
 }
 #endif
 
-// 4. Calendar - 세부 구성 요소 (Year, Month, Day, Weekday, Monthday 등)
+// 4. Calendar - detailed components (Year, Month, Day, Weekday, Monthday, etc.)
 #if __cplusplus >= 202002L
 // C++20 
 TEST(ChronoTest, CalendarComponents) {
-	compatible_chrono::year y{ 2026 }; // 2026년
-	compatible_chrono::month m{ compatible_chrono::May }; // 5월
-	compatible_chrono::day d{ 1 }; // 1일
+	compatible_chrono::year y{ 2026 }; // year 2026
+	compatible_chrono::month m{ compatible_chrono::May }; // May
+	compatible_chrono::day d{ 1 }; // day 1
 
-    // 연도 관련 함수 
-    EXPECT_FALSE(y.is_leap()); // 2026년은 윤년이 아님
+    // Year-related functions 
+    EXPECT_FALSE(y.is_leap()); // 2026 is not a leap year
 
-    // 월/일 연산
+    // Month/day operations
     auto next_month = m + compatible_chrono::months(1);
-    EXPECT_EQ(next_month, compatible_chrono::June); // 5월 다음은 6월
+    EXPECT_EQ(next_month, compatible_chrono::June); // May -> June
 
-    // Last day of month (해당 월의 마지막 날)
+    // Last day of month (the month's final day)
     compatible_chrono::year_month_day_last ymdl{ y, compatible_chrono::month_day_last{m} };
-    EXPECT_EQ(ymdl.day(), compatible_chrono::day(31)); // 5월의 마지막 날은 31일
+    EXPECT_EQ(ymdl.day(), compatible_chrono::day(31)); // May has 31 days
 }
 #else
 // C++17 
 TEST(ChronoTest, CalendarComponents) {
-	compatible_chrono::year y{ 2026 }; // 2026년
-	compatible_chrono::month m{ compatible_chrono::May }; // 5월
-	compatible_chrono::day d{ 1 }; // 1일
+	compatible_chrono::year y{ 2026 }; // year 2026
+	compatible_chrono::month m{ compatible_chrono::May }; // May
+	compatible_chrono::day d{ 1 }; // day 1
 
-    // 연도 관련 함수 
-    EXPECT_FALSE(y.is_leap()); // 2026년은 윤년이 아님
+    // Year-related functions 
+    EXPECT_FALSE(y.is_leap()); // 2026 is not a leap year
 
-    // 월/일 연산
-    auto next_month = m + compatible_chrono::months(1); // 1달 뒤 
-    EXPECT_EQ(next_month, compatible_chrono::June); // 5월 다음은 6월
+    // Month/day operations
+    auto next_month = m + compatible_chrono::months(1); // one month later
+    EXPECT_EQ(next_month, compatible_chrono::June); // May -> June
 
-	// 12월 다음 달은 1월로 돌아가는지 테스트
-	auto dec = compatible_chrono::December; // 12월
-	auto next_dec = dec + compatible_chrono::months(1); // 1달 뒤
-	EXPECT_EQ(next_dec, compatible_chrono::January); // 12월 다음은 1월
+	// Test that December rolls over to January
+	auto dec = compatible_chrono::December; // December
+	auto next_dec = dec + compatible_chrono::months(1); // one month later
+	EXPECT_EQ(next_dec, compatible_chrono::January); // December -> January
 
-    // Last day of month (해당 월의 마지막 날)
+    // Last day of month (the month's final day)
     compatible_chrono::year_month_day_last ymdl{ y, compatible_chrono::month_day_last{m} };
-    EXPECT_EQ(ymdl.day(), compatible_chrono::day(31)); // 5월의 마지막 날은 31일
+    EXPECT_EQ(ymdl.day(), compatible_chrono::day(31)); // May has 31 days
 }
 #endif
 
@@ -114,32 +119,32 @@ TEST(ChronoTest, CalendarComponents) {
 #if __cplusplus >= 202002L
 // C++20 
 TEST(ChronoTest, TimeOfDay) {
-    compatible_chrono::seconds total_secs(3661); // 1시간 1분 1초
+    compatible_chrono::seconds total_secs(3661); // 1 hour 1 minute 1 second
     compatible_chrono::hh_mm_ss tod{ total_secs };
 
     EXPECT_EQ(tod.hours().count(), 1);
     EXPECT_EQ(tod.minutes().count(), 1);
     EXPECT_EQ(tod.seconds().count(), 1);
-    EXPECT_FALSE(tod.is_negative()); // 양수 시간
+    EXPECT_FALSE(tod.is_negative()); // positive time
 }
 #else
 // C++17 
 TEST(ChronoTest, TimeOfDay) {
-    compatible_chrono::seconds total_secs(3661); // 1시간 1분 1초
+    compatible_chrono::seconds total_secs(3661); // 1 hour 1 minute 1 second
     compatible_chrono::hh_mm_ss tod{ total_secs };
 
     EXPECT_EQ(tod.hours().count(), 1);
     EXPECT_EQ(tod.minutes().count(), 1);
     EXPECT_EQ(tod.seconds().count(), 1);
-    EXPECT_FALSE(tod.is_negative()); // 양수 시간
+    EXPECT_FALSE(tod.is_negative()); // positive time
 }
 #endif
 
-// 6. Time Zone / Leap Seconds (윤초)
+// 6. Time Zone / Leap Seconds
 #if __cplusplus >= 202002L
 // C++20
 TEST(ChronoTest, LeapSeconds) {
-    // 시스템에 등록된 윤초 리스트 확인
+    // Check the system-registered list of leap seconds
     auto& db = compatible_chrono::get_tzdb();
     if (!db.leap_seconds.empty()) {
         auto last_leap = db.leap_seconds.back();
@@ -149,7 +154,7 @@ TEST(ChronoTest, LeapSeconds) {
 #else
 // C++17
 TEST(ChronoTest, LeapSeconds) {
-    // 시스템에 등록된 윤초 리스트 확인
+    // Check the system-registered list of leap seconds
     auto& db = compatible_chrono::get_tzdb();
     if (!db.leap_seconds.empty()) {
         auto last_leap = db.leap_seconds.back();
@@ -168,8 +173,8 @@ TEST(ChronoTest, Formatting) {
                 compatible_chrono::May / 
         1 };
 
-    // std::format을 이용한 문자열 변환 테스트
-    // (지원되는 컴파일러 환경에서만 작동)
+    // Test string formatting using std::format
+    // (works only on supported compiler environments)
     try {
         std::string s = CHRONO_FORMAT("%Y-%m-%d", today);
         EXPECT_EQ(s, "2026-05-01");
@@ -191,8 +196,8 @@ TEST(ChronoTest, Formatting) {
             compatible_chrono::May / 
         1 };
 
-    // std::format을 이용한 문자열 변환 테스트
-    // (지원되는 컴파일러 환경에서만 작동)
+    // Test string formatting using std::format
+    // (works only on supported compiler environments)
     std::string s = CHRONO_FORMAT("%Y-%m-%d", today);
     EXPECT_EQ(s, "2026-05-01");
 }
