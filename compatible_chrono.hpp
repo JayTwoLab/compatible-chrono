@@ -1,6 +1,5 @@
 ﻿#pragma once
 
-// C++20 and lower version compatible library
 #include <optional>
 
 #if __cplusplus >= 202002L
@@ -18,8 +17,6 @@
     ///////////////////////////////////////////////////
     // C++20 supports output with std::format
     #define CHRONO_FORMAT(fmt, tp) std::format("{:" fmt "}", tp)
-
- 
 
 #else
     // C++17 (Less than C++20): Using Howard Hinnant's date library
@@ -131,29 +128,34 @@
 #endif // #if __cplusplus < 202002L
 
 
-///////////////////////////////////////////////
-// Get local time (C++17/20 compatible)
-using local_time_t = decltype( compatible_chrono::current_zone()->to_local( std::declval< compatible_chrono::system_clock::time_point >() ) );
+namespace compatible_chrono_local {
 
-inline std::optional<local_time_t> local_now() {
-    auto now = compatible_chrono::system_clock::now();
-    try {
-        return compatible_chrono::current_zone()->to_local(now);
-    } catch (...) {
-        return std::nullopt; // Return empty optional on failure
-    }
-} // local_now()
+    ///////////////////////////////////////////////
+    // Get local time (C++17/20 compatible)
+    using local_time_t = decltype(compatible_chrono::current_zone()->to_local(std::declval< compatible_chrono::system_clock::time_point >()));
 
-// Helper struct to hold decomposed local time components
-struct local_components {
-    int year; // year can be negative (e.g., BC, AD), so use int
-    unsigned month;
-    unsigned day;
+    inline std::optional<local_time_t> local_now() {
+        auto now = compatible_chrono::system_clock::now();
+        try {
+            return compatible_chrono::current_zone()->to_local(now);
+        }
+        catch (...) {
+            return std::nullopt; // Return empty optional on failure
+        }
+    } // local_now()
 
-    unsigned hour;
-    unsigned minute;
-    unsigned second;
-    unsigned millisecond;
+    // Helper struct to hold decomposed local time components
+    struct local_components {
+        int year; // year can be negative (e.g., BC, AD), so use int
+        unsigned month;
+        unsigned day;
+
+        unsigned hour;
+        unsigned minute;
+        unsigned second;
+        unsigned millisecond;
+    }; // struct local_components
+
 
     // Helper function to decompose a local_time_t into its components
     static local_components decompose_local(local_time_t tp)
@@ -176,8 +178,7 @@ struct local_components {
             static_cast<unsigned>(tod.seconds().count()),
             static_cast<unsigned>(tod.subseconds().count())
         };
-	} // decompose_local()
-}; // struct local_components
+    } // decompose_local()
 
-
+} // namespace compatible_chrono
 

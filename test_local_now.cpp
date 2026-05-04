@@ -5,14 +5,15 @@
 TEST(local_now_gtest, extract_components_and_ranges)
 {
     namespace cc = compatible_chrono; // shorten namespace for convenience
+	namespace ccl = compatible_chrono_local; // shorten namespace for local time utilities
     using ms = cc::milliseconds; // alias for milliseconds duration
 
-    auto opt = local_now(); // get local time 
+    auto opt = ccl::local_now(); // get local time 
     if (!opt)
         GTEST_SKIP() << "local_now() unavailable; timezone DB may be missing";
 
     auto now_local = *opt;
-    auto c = local_components::decompose_local(now_local);
+    auto c = ccl::decompose_local(now_local);
 
 	std::cout << CHRONO_FORMAT("%F %T", now_local) << '\n'; // print the local time for debugging
 
@@ -30,9 +31,10 @@ TEST(local_now_gtest, extract_components_and_ranges)
 TEST(local_now_gtest, span_between_local_times)
 {
     namespace cc = compatible_chrono; // shorten namespace for convenience
+    namespace ccl = compatible_chrono_local; // shorten namespace for local time utilities
     using ms = cc::milliseconds; // alias for milliseconds duration
 
-    auto opt = local_now();
+    auto opt = ccl::local_now();
     if (!opt) 
         GTEST_SKIP() << "local_now() unavailable; timezone DB may be missing";
     auto now_local = *opt;
@@ -51,9 +53,10 @@ TEST(local_now_gtest, span_between_local_times)
 TEST(local_now_gtest, five_minutes_ago_components_and_difference)
 {
     namespace cc = compatible_chrono; // shorten namespace for convenience
+    namespace ccl = compatible_chrono_local; // shorten namespace for local time utilities
     using ms = cc::milliseconds; // alias for milliseconds duration
 
-    auto opt = local_now();
+    auto opt = ccl::local_now();
     if (!opt) 
         GTEST_SKIP() << "local_now() unavailable; timezone DB may be missing";
     auto now_local = *opt;
@@ -66,14 +69,14 @@ TEST(local_now_gtest, five_minutes_ago_components_and_difference)
     EXPECT_EQ(dmin, 5);
 
     // Decompose both and validate component ranges
-    auto now_c = local_components::decompose_local(now_local);
-    auto ago_c = local_components::decompose_local(five_min_ago);
+    auto now_c = ccl::decompose_local(now_local); 
+    auto ago_c = ccl::decompose_local(five_min_ago);
 
     EXPECT_GE(now_c.year, 1970);
-    EXPECT_GE(ago_c.year, 1970);
-
     EXPECT_GE(now_c.month, 1u);
     EXPECT_LE(now_c.month, 12u);
+
+    EXPECT_GE(ago_c.year, 1970);
     EXPECT_GE(ago_c.month, 1u);
     EXPECT_LE(ago_c.month, 12u);
 
