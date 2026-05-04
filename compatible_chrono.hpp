@@ -1,15 +1,25 @@
 ﻿#pragma once
 
+// C++20 and lower version compatible library
+#include <optional>
+
 #if __cplusplus >= 202002L
     // C++20 and later: using standard chrono
 
-    #include <chrono> // c++20 chrono library header
-    #include <format> // c++20 format library header
-  
-    namespace compatible_chrono = std::chrono; // Alias for std::chrono namespace 
+    ///////////////////////////////////////////////////
+    // c++20 library header
+    #include <chrono> 
+    #include <format> 
 
+    ///////////////////////////////////////////////////
+    // Alias for std::chrono namespace 
+    namespace compatible_chrono = std::chrono; 
+
+    ///////////////////////////////////////////////////
     // C++20 supports output with std::format
     #define CHRONO_FORMAT(fmt, tp) std::format("{:" fmt "}", tp)
+
+ 
 
 #else
     // C++17 (Less than C++20): Using Howard Hinnant's date library
@@ -59,6 +69,8 @@
 
         ////////////////////////////////////////////
         // date library durations/types/extensions
+
+        using date::current_zone; // get current time zone (returns a pointer to the current time zone)
         
         using date::years; // duration representing years
         using date::months; // duration representing months
@@ -72,8 +84,8 @@
         using date::month_day; // month/day (e.g., March 15)
         using date::hh_mm_ss; // hours:minutes:seconds helper
 
-        using date::sys_days; // : UTC(시스템 시계 기준)의 날짜를 나타내는 타입(내부적으로 time_point<system_clock, days>의 별칭). 날짜의 0시(00:00)는 UTC 기준이다.
-        using date::local_days; // 로컬(지역) 시각의 날짜를 나타내는 타입(내부적으로 time_point<local_t, days>의 별칭). 날짜의 0시는 로컬 시각 기준이다.
+        using date::sys_days; // Type of date (internal time_point<system_clock, alias for days>) for the system clock reference (UTC). The 0:00:00 of the date is UTC.
+        using date::local_days; // The type that represents the date of the local time (internal time_point <local_t, days> is an alias). The 0 o'clock of the date is the local time reference.
 
         using date::utc_clock; // UTC clock
 
@@ -113,9 +125,59 @@
 	} // namespace compatible_chrono
 
     //////////////////////////////////////////////////
-
     // Using the format function of date.h
     #define CHRONO_FORMAT(fmt, tp) date::format(fmt, tp)
+    
+#endif // #if __cplusplus < 202002L
 
-#endif
+
+///////////////////////////////////////////////
+// Get local time (C++17/20 compatible)
+using local_time_t = decltype( compatible_chrono::current_zone()->to_local( std::declval< compatible_chrono::system_clock::time_point >() ) );
+
+inline std::optional<local_time_t> local_now() {
+    auto now = compatible_chrono::system_clock::now();
+    try {
+        return compatible_chrono::current_zone()->to_local(now);
+    } catch (...) {
+        return std::nullopt; // Return empty optional on failure
+    }
+} // local_now()
+
+// Helper struct to hold decomposed local time components
+struct local_components {
+    int year; // year can be negative (e.g., BC, AD), so use int
+    unsigned month;
+    unsigned day;
+
+    unsigned hour;
+    unsigned minute;
+    unsigned second;
+    unsigned millisecond;
+
+    // Helper function to decompose a local_time_t into its components
+    static local_components decompose_local(local_time_t tp)
+    {
+        namespace cc = compatible_chrono; // shorten namespace for convenience
+        using ms = cc::milliseconds; // alias for milliseconds duration
+
+        auto day_tp = cc::floor<cc::days>(tp); // Get the date part (floor to days)
+        cc::year_month_day ymd{ day_tp }; // Decompose the date part into year, month, day
+
+        auto since_midnight = tp - day_tp; // Get the time since midnight (time of day)
+        cc::hh_mm_ss<ms> tod{ cc::duration_cast<ms>(since_midnight) }; // total of hours, minutes, seconds, milliseconds since midnight
+
+        return {
+            static_cast<int>(ymd.year()),
+            static_cast<unsigned>(ymd.month()),
+            static_cast<unsigned>(ymd.day()),
+            static_cast<unsigned>(tod.hours().count()),
+            static_cast<unsigned>(tod.minutes().count()),
+            static_cast<unsigned>(tod.seconds().count()),
+            static_cast<unsigned>(tod.subseconds().count())
+        };
+	} // decompose_local()
+}; // struct local_components
+
+
 

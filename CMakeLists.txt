@@ -32,7 +32,7 @@ project(compatible_chrono_test)
 # C++ standard setting (user may choose -DCMAKE_CXX_STANDARD=17 or 20)
 if(NOT CMAKE_CXX_STANDARD)
     set(CMAKE_CXX_STANDARD 17)  
-    # set(CMAKE_CXX_STANDARD 20)     
+    # set(CMAKE_CXX_STANDARD 20)       
 endif()
 
 set(CMAKE_CXX_STANDARD_REQUIRED ON) # Require C++ standard to be met
