@@ -5,55 +5,8 @@
 
     #include <chrono> // c++20 chrono library header
     #include <format> // c++20 format library header
-
-    // Prefer Howard Hinnant's tz if available even in C++20 (vcpkg usually provides it)
-    #if defined(__has_include)
-        #if __has_include(<date/tz.h>)
-            #include <date/tz.h>
-            #define COMPAT_HAS_DATE_TZ 1
-        # else
-            #define COMPAT_HAS_DATE_TZ 0
-        #endif
-    #else
-        #define COMPAT_HAS_DATE_TZ 0
-    #endif
-
-    // Expose a compat namespace that mirrors std::chrono identifiers so we can add helpers.
-    namespace compatible_chrono {
-        // Pull commonly used chrono types into the compat namespace
-        using namespace std::chrono;
-
-        // Calendar/time utilities introduced in C++20
-        using std::chrono::year;
-        using std::chrono::month;
-        using std::chrono::day;
-        using std::chrono::year_month_day;
-        using std::chrono::hh_mm_ss;
-        using std::chrono::weekday;
-        using std::chrono::sys_days;
-        using std::chrono::local_days;
-        using std::chrono::utc_clock;
-        using std::chrono::floor;
-        using std::chrono::ceil;
-        using std::chrono::days;
-        using std::chrono::months;
-        using std::chrono::years;
-    
-        using local_time_t = decltype(date::current_zone()->to_local(std::declval<system_clock::time_point>()));
-    
-        // local_now() returns the canonical local_time_t
-        inline local_time_t local_now() {
-            auto now = system_clock::now();
-
-            try {
-                return date::current_zone()->to_local(now); // returns local_time_t
-            } catch (...) {
-                // Construct local_time_t from epoch-duration as a safe fallback
-                return local_time_t{};
-            }
-		} // local_now()
-
-    } // namespace compatible_chrono
+  
+    namespace compatible_chrono = std::chrono; // Alias for std::chrono namespace 
 
     // C++20 supports output with std::format
     #define CHRONO_FORMAT(fmt, tp) std::format("{:" fmt "}", tp)
@@ -157,18 +110,7 @@
         template <typename T>
         inline constexpr bool is_clock_v = is_clock<T>::value;
 
-        // canonical local_time_t (date::tz is available in this branch)
-        using local_time_t = decltype(date::current_zone()->to_local(std::declval<system_clock::time_point>()));
-
-        inline local_time_t local_now() {
-            auto now = system_clock::now();
-            try {
-                return date::current_zone()->to_local(now);
-            } catch (...) {
-                return local_time_t{ now.time_since_epoch() };
-            }
-        }
-    }
+	} // namespace compatible_chrono
 
     //////////////////////////////////////////////////
 

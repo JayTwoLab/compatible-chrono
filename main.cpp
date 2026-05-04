@@ -129,7 +129,7 @@ int main(int argc, char** argv) {
         return RUN_ALL_TESTS();
     }
 
-    // If CMake injected PROJECT_SOURCE_DIR_TZDATA, prefer it first
+    // If "CMake" injected "PROJECT_SOURCE_DIR_TZDATA, prefer it first
 #ifdef PROJECT_SOURCE_DIR_TZDATA
     {
         std::filesystem::path p(PROJECT_SOURCE_DIR_TZDATA);
@@ -139,8 +139,6 @@ int main(int argc, char** argv) {
         }
     }
 #endif
-
-    namespace fs = std::filesystem;
 
     // Try to find and set tzdata based on the executable's directory
     if (auto exe_dir = get_executable_dir()) {
@@ -152,6 +150,7 @@ int main(int argc, char** argv) {
 
     // Try to find and set tzdata based on argv[0] path (useful when argv[0] contains a path)
     if (argc > 0 && argv[0]) {
+        namespace fs = std::filesystem;
         try {
             fs::path p(argv[0]);
             if (!p.is_absolute()) p = fs::current_path() / p;
@@ -159,11 +158,14 @@ int main(int argc, char** argv) {
                 ::testing::InitGoogleTest(&argc, argv);
                 return RUN_ALL_TESTS();
             }
-        } catch (...) {}
+        } catch (...) {
+			// Ignore filesystem exceptions and proceed with tests
+        }
     }
 
     // Search upwards from the current working directory for tzdata and configure it
     try {
+        namespace fs = std::filesystem;
         if (try_set_from_candidate(fs::current_path())) {
             ::testing::InitGoogleTest(&argc, argv);
             return RUN_ALL_TESTS();
