@@ -1,5 +1,7 @@
 # compatible-chrono
 
+> [Korean](README.ko.md)
+
 A C++ header-only library providing a compatibility layer for `<chrono>` features across different C++ standards (C++17, C++20, etc). This project aims to make it easier to write portable time and date code that works seamlessly regardless of the C++ standard version.
 
 ## Features
